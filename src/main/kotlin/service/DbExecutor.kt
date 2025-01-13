@@ -1,14 +1,11 @@
 package com.anjo.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import java.sql.DriverManager
 
 private val logger = KotlinLogging.logger {}
 
-fun modifySqlDb(dbFilePath: String, sql: String) {
-    val url = "jdbc:sqlite:$dbFilePath"
-
-    val driveConnection = DriverManager.getConnection(url)
+fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionProvider) {
+    val driveConnection = connectionProvider.getConnection()
     driveConnection.use { connection ->
         logger.info { "Creating database connection..." }
         connection.createStatement().use { statement ->

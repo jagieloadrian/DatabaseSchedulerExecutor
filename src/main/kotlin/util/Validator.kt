@@ -49,7 +49,7 @@ fun validateSql(sql: String?): Boolean {
 fun validateProperties(configProps: PropertiesConfig) {
     val dbPath = validatePath(configProps.getFileDb())
     val statement = validateSql(configProps.getStatement())
-    require(!dbPath or statement) { "DB path or statement must be properly specified" }
+    require(dbPath and statement) { "DB path or statement must be properly specified" }
 }
 
 private fun doesntContainSqlInjection(sql: String): Boolean {
