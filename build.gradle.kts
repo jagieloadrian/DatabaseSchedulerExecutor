@@ -14,6 +14,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.47.2.0")
     implementation("com.cronutils:cron-utils:9.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+    implementation("com.github.jsqlparser:jsqlparser:5.1")
 
     //logging
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")

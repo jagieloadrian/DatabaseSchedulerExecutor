@@ -10,8 +10,9 @@ fun modifySqlDb(dbFilePath: String, sql: String) {
 
     val driveConnection = DriverManager.getConnection(url)
     driveConnection.use { connection ->
+        logger.info { "Creating database connection..." }
         connection.createStatement().use { statement ->
-            logger.info { "Creating database connection..." }
+            logger.info { "Execute sql statement..." }
             statement.execute(sql)
             logger.info { "Successfully executed! Close connection." }
         }
