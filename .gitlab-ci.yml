@@ -8,31 +8,49 @@ stages:
   - build
   - package
 
-build_jar:
+build:
   stage: build
   timeout: 20 minutes
   script:
     - echo "Start building app"
     - ./gradlew build :jar
     - echo "Finish building app"
+    - echo "Make output dir"
+    - mkdir -p build_output
+    - echo "Copy jar"
+    - cp build/libs/*.jar build_output/
+    - echo "Publish output dir"
+  artifacts:
+    paths:
+      - build_output/
+    expire_in: 20 minutes
   rules:
-    - if: $executeManualJob == "true"
-      when: always
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       when: always
 
 package_zip:
   stage: package
   dependencies:
-    - build_jar
+    - build
+  needs: ["build"]
+  before_script:
+    - apt-get update
+    - apt-get install -y zip unzip
   script:
+    - echo "Create target directory"
     - mkdir -p db_scheduler_executor
-    - cp build/libs/*.jar db_scheduler_executor/
+    - echo "Copy files to target directory"
+    - cp ./build_output/*.jar db_scheduler_executor/
     - cp ./killScheduler.sh db_scheduler_executor/
     - cp ./runScheduler.sh db_scheduler_executor/
     - cp ./src/main/resources/app.properties db_scheduler_executor/
+    - echo "Zip files..."
     - zip -r db_scheduler_executor.zip db_scheduler_executor
+    - echo "Publish artifacts"
   artifacts:
     paths:
       - db_scheduler_executor.zip
     when: on_success
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: always

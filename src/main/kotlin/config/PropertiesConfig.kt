@@ -3,7 +3,7 @@ package com.anjo.config
 import java.io.FileInputStream
 import java.util.Properties
 
-class PropertiesConfig(path:String) {
+class PropertiesConfig(path: String) {
 
     private val properties = Properties()
 
