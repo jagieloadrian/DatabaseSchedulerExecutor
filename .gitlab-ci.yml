@@ -27,12 +27,18 @@ package_zip:
     - build
   needs: ["build"]
   script:
+    - ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
+    - echo "Create target directory"
     - mkdir -p db_scheduler_executor
-    - cp build/libs/*.jar db_scheduler_executor/
+    - pwd
+    - echo "Copy files to target directory"
+    - cp /builds/jagieloadrian/databasescheduleexecutor/build/libs/*.jar db_scheduler_executor/
     - cp ./killScheduler.sh db_scheduler_executor/
     - cp ./runScheduler.sh db_scheduler_executor/
     - cp ./src/main/resources/app.properties db_scheduler_executor/
+    - echo "Zip files..."
     - zip -r db_scheduler_executor.zip db_scheduler_executor
+    - echo "Publish artifacts"
   artifacts:
     paths:
       - db_scheduler_executor.zip
