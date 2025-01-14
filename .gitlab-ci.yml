@@ -33,6 +33,8 @@ package_zip:
   dependencies:
     - build
   needs: ["build"]
+  before_script:
+    - apt-get install zip
   script:
     - echo "Create target directory"
     - mkdir -p db_scheduler_executor
