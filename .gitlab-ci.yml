@@ -25,7 +25,7 @@ package_zip:
   stage: package
   dependencies:
     - build_jar
-  needs: ["build"]
+  needs: ["build_jar"]
   script:
     - mkdir -p db_scheduler_executor
     - cp build/libs/*.jar db_scheduler_executor/
