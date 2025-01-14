@@ -9,7 +9,7 @@ import java.io.File
 private val logger = KotlinLogging.logger {}
 
 fun validateArgs(args: Array<String>): Boolean {
-    return args.isNotEmpty() && args[0] == "--config" && args.size == 2
+    return args.isNotEmpty() && args.size == 2 && args[0] == "--config"
 }
 
 fun validatePath(path: String?): Boolean {

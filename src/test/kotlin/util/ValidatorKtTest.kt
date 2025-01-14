@@ -81,7 +81,8 @@ class ValidatorKtTest {
             return listOf(
                     Arguments.of("Select * from people;", true),
                     Arguments.of("Select * from people;1=1;", false),
-                    Arguments.of("Select;", false)
+                    Arguments.of("Select;", false),
+                    Arguments.of("", false)
             )
         }
     }
