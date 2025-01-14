@@ -15,9 +15,16 @@ build:
     - echo "Start building app"
     - ./gradlew build :jar
     - echo "Finish building app"
+    - echo "Make output dir"
+    - mkdir -p build_output
+    - echo "Copy jar"
+    - cp build/libs/*.jar build_output/
+    - echo "Publish output dir"
+  artifacts:
+    paths:
+      - build_output/
+    expire_in: 20 minutes
   rules:
-    - if: $executeManualJob == "true"
-      when: always
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       when: always
 
@@ -30,9 +37,8 @@ package_zip:
     - ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
     - echo "Create target directory"
     - mkdir -p db_scheduler_executor
-    - pwd
     - echo "Copy files to target directory"
-    - cp /builds/jagieloadrian/databasescheduleexecutor/build/libs/*.jar db_scheduler_executor/
+    - cp ./build/libs/*.jar db_scheduler_executor/
     - cp ./killScheduler.sh db_scheduler_executor/
     - cp ./runScheduler.sh db_scheduler_executor/
     - cp ./src/main/resources/app.properties db_scheduler_executor/
@@ -44,7 +50,5 @@ package_zip:
       - db_scheduler_executor.zip
     when: on_success
   rules:
-    - if: $executeManualJob == "true"
-      when: always
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       when: always
