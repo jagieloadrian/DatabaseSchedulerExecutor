@@ -61,7 +61,7 @@ Attention, when you run more than one program then kill all processes by name of
 - run command `sh runScheduler.sh`
 
 ## Download
-- [DBSchedulerExecutor.zip](https://gitlab.com/api/v4/projects/66064754/jobs/artifacts/main/raw/build/libs/TuyaKeyExtractorKt.jar?job=build)
+- [DBSchedulerExecutor.zip](https://gitlab.com/api/v4/projects/66064754/jobs/artifacts/main/download?job=build)
 
 ## Room for Improvement
 - Add specific name for process ID
