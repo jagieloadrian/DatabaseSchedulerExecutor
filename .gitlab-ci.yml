@@ -25,6 +25,8 @@ build:
       - build_output/
     expire_in: 20 minutes
   rules:
+    - if: $executeManualJob == "true"
+      when: always
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       when: always
 
@@ -52,5 +54,7 @@ package_zip:
       - db_scheduler_executor.zip
     when: on_success
   rules:
+    - if: $executeManualJob == "true"
+      when: always
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       when: always
