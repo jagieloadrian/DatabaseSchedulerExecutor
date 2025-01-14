@@ -34,7 +34,10 @@ package_zip:
     - build
   needs: ["build"]
   before_script:
-    - apt-get install zip
+    - which zip
+    - apt-get update
+    - apt-get install zip unzip
+    - which zip
   script:
     - echo "Create target directory"
     - mkdir -p db_scheduler_executor
