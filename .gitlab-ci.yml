@@ -50,7 +50,7 @@ package_zip:
     - zip -r db_scheduler_executor.zip db_scheduler_executor
     - echo "Publish artifacts"
   artifacts:
-    name: db_scheduler_executor.zip
+    name: db_scheduler_executor
     paths:
       - db_scheduler_executor.zip
     when: on_success
