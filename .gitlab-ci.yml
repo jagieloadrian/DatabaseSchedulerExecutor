@@ -8,7 +8,7 @@ stages:
   - build
   - package
 
-build_jar:
+build:
   stage: build
   timeout: 20 minutes
   script:
@@ -24,8 +24,8 @@ build_jar:
 package_zip:
   stage: package
   dependencies:
-    - build_jar
-  needs: ["build_jar"]
+    - build
+  needs: ["build"]
   script:
     - mkdir -p db_scheduler_executor
     - cp build/libs/*.jar db_scheduler_executor/
