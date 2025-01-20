@@ -3,7 +3,12 @@ package com.anjo.util
 import com.anjo.config.PropertiesConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.sf.jsqlparser.JSQLParserException
+import net.sf.jsqlparser.parser.CCJSqlParserManager
 import net.sf.jsqlparser.parser.CCJSqlParserUtil
+import net.sf.jsqlparser.statement.delete.Delete
+import net.sf.jsqlparser.statement.insert.Insert
+import net.sf.jsqlparser.statement.select.Select
+import net.sf.jsqlparser.statement.update.Update
 import java.io.File
 
 private val logger = KotlinLogging.logger {}
@@ -67,5 +72,20 @@ private fun doesntContainSqlInjection(sql: String): Boolean {
     } else {
         logger.error { "Contain one of sql injection pattern" }
         false
+    }
+}
+
+fun checkSqlOperationUsingParser(query: String): String {
+    try {
+        val statement = CCJSqlParserUtil.parse(query)
+        return when (statement) {
+            is Select -> "SELECT Operation"
+            is Insert -> "INSERT Operation"
+            is Update -> "UPDATE Operation"
+            is Delete -> "DELETE Operation"
+            else      -> "Unknown Operation"
+        }
+    } catch (e: Exception) {
+        return "Invalid SQL"
     }
 }

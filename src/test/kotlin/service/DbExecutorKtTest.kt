@@ -14,7 +14,7 @@ class DbExecutorKtTest {
     @Test
     fun `given properly path and sql statement when run dbExecutor then check if increase result check`() {
         //given
-        val sql = "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);"
+        val sql = "select * from users;"
 
         val mockConnectionProvider = mockk<DatabaseConnectionProvider>()
         val mockConnection = mockk<Connection>(relaxed = true)
@@ -29,7 +29,7 @@ class DbExecutorKtTest {
         //then
         verify { mockConnectionProvider.getConnection() }
         verify { mockConnection.createStatement() }
-        verify { mockStatement.execute(sql) }
+        verify { mockStatement.executeQuery(sql) }
         verify { mockStatement.close() }
     }
 }
