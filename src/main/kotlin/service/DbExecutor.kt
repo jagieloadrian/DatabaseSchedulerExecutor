@@ -48,6 +48,7 @@ fun executeOperation(query: String, statement: Statement): String {
 fun executeUpdateQuery(query: String, statement: Statement): String {
     var rowsAffected = 0
     try {
+        statement.connection.autoCommit = false
         logSqlQuery(query)
         rowsAffected = statement.executeUpdate(query)
         statement.connection.commit()
