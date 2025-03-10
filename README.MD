@@ -66,6 +66,7 @@ Attention, when you run more than one program then kill all processes by name of
 
 ## Room for Improvement
 - Add specific name for process ID
+- Handle more databases (Oracle, MySql, Postgres) 
 
 ## Project Status
 Project is: finished
