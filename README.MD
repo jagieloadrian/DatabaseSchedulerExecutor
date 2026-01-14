@@ -62,7 +62,6 @@ Attention, when you run more than one program then kill all processes by name of
 
 ## Download
 - Link: [DBSchedulerExecutor.zip](https://github.com/jagieloadrian/DatabaseSchedulerExecutor/releases/latest)
-- Command: `wget -O scheduler.zip https://gitlab.com/api/v4/projects/66064754/jobs/artifacts/main/raw/db_scheduler_executor.zip?job=package_zip`
 
 ## Room for Improvement
 - Add specific name for process ID
