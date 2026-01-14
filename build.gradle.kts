@@ -3,8 +3,8 @@ plugins {
     application
 }
 
-group = "com.anjo"
-version = "1.0"
+group = project.property("group") as String
+version = project.property("version") as String
 
 repositories {
     mavenCentral()
