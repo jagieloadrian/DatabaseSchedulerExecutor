@@ -31,7 +31,7 @@ It's application which execute SQL statement on specific time defined by CRON ex
 List the ready features here:
 - run SQL statement on specific time
 - no need to rebuild app, just restart to load properties with new information
-- in case of limits by cron-utils it has to be 5 chars CRON expression with spaces (like in `app.properties` file, cause `CronType.Unix`). See [cron-utils docs]()
+- in case of limits by cron-utils it has to be 5 chars CRON expression with spaces (like in `app.properties` file, cause `CronType.Unix`). See [cron-utils docs](http://cron-parser.com/)
 - program accept one SQL statement due to avoid SQL injection
 
 ## Setup
