@@ -1,11 +1,9 @@
 name: Kotlin Gradle CI/CD
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
 
 jobs:
   build:
