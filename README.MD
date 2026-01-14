@@ -61,7 +61,7 @@ Attention, when you run more than one program then kill all processes by name of
 - run command `sh runScheduler.sh`
 
 ## Download
-- Link: [DBSchedulerExecutor.zip](https://gitlab.com/api/v4/projects/66064754/jobs/artifacts/main/raw/db_scheduler_executor.zip?job=package_zip)
+- Link: [DBSchedulerExecutor.zip](https://github.com/jagieloadrian/DatabaseSchedulerExecutor/releases/latest)
 
 ## Room for Improvement
 - Add specific name for process ID
