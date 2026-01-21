@@ -13,6 +13,7 @@ suspend fun runSchedulerFlow(calcDuration: () -> Duration, dbExecutor: () -> Uni
     val execFlow = flow {
         while (true) {
             val delay = calcDuration()
+            logger.info { "Calculated delay:L $delay" }
             emit(dbExecutor())
             delay(delay)
         }
