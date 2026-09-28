@@ -69,7 +69,10 @@ cron=* * * * *
 
 ## Stop program
 To stop program (especially when you run by `runScheduler.sh`) run command `sh killScheduler.sh`
-Attention, when you run more than one program then kill all processes by name of app. 
+Each instance tracks its own PID in `scheduler.pid` in the run folder, so running multiple
+instances from separate folders is safe — `killScheduler.sh` only stops the instance in the
+folder it's run from. `runScheduler.sh` refuses to start a duplicate if one is already running
+in the same folder.
 
 ## Usage
 - Download zip from link below and unzip in destiny folder

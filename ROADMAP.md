@@ -13,7 +13,7 @@
 - Jar filename in README hardcoded `-1.0.jar`, CI auto-bumps version from `gradle.properties` → drift risk.
   Either template the README command with `$VERSION` or note "check latest release name".
 
-## Stage 3 — Feature: process naming
+## Stage 3 — Feature: process naming ✅ done (see .specs/stage-3-process-naming.md)
 - Add specific process name/PID labeling.
   Needed for `killScheduler.sh` safety when multiple instances run.
 
