@@ -34,3 +34,7 @@
 - Uninstall: no separate script needed, one command each
   (`systemctl disable --now db-scheduler && rm /etc/systemd/system/db-scheduler.service` /
   `schtasks /Delete /TN DatabaseSchedulerExecutor /F`).
+
+## Stage 6 — Relocate shell/install scripts + bats coverage ✅ done (see .specs/stage-6-scripts-relocation.md)
+- Move runScheduler.sh/killScheduler.sh/install-service.sh/install-service.ps1 to src/test/resources/
+- Add bats tests for the shell scripts (src/test/scripts/), wire into CI
