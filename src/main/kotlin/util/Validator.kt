@@ -4,12 +4,7 @@ import com.anjo.config.PropertiesConfig
 import com.anjo.service.DbType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.sf.jsqlparser.JSQLParserException
-import net.sf.jsqlparser.parser.CCJSqlParserManager
 import net.sf.jsqlparser.parser.CCJSqlParserUtil
-import net.sf.jsqlparser.statement.delete.Delete
-import net.sf.jsqlparser.statement.insert.Insert
-import net.sf.jsqlparser.statement.select.Select
-import net.sf.jsqlparser.statement.update.Update
 import java.io.File
 
 private val logger = KotlinLogging.logger {}
@@ -76,10 +71,16 @@ fun validateNetworkDbConfig(configProps: PropertiesConfig, dbType: DbType): Bool
 }
 
 private fun doesntContainSqlInjection(sql: String): Boolean {
+    if (containsStackedStatements(sql)) {
+        logger.error { "SQ" +
+                "L contains more than one statement (stacked query)" }
+        return false
+    }
     val patterns = listOf(
-            ".*(;.*;)+.*",
             ".*--.*",
-            ".*' OR '.*=.*",
+            ".*#.*",
+            ".*/\\*.*\\*/.*",
+            ".*'\\s*OR\\s*('.*'|\\d+\\s*=\\s*\\d+).*",
             ".*DROP.*",
             ".*ALTER.*",
             ".*TRUNCATE.*"
@@ -93,17 +94,11 @@ private fun doesntContainSqlInjection(sql: String): Boolean {
     }
 }
 
-fun checkSqlOperationUsingParser(query: String): String {
-    try {
-        val statement = CCJSqlParserUtil.parse(query)
-        return when (statement) {
-            is Select -> "SELECT Operation"
-            is Insert -> "INSERT Operation"
-            is Update -> "UPDATE Operation"
-            is Delete -> "DELETE Operation"
-            else      -> "Unknown Operation"
-        }
-    } catch (e: Exception) {
-        return "Invalid SQL"
+private fun containsStackedStatements(sql: String): Boolean {
+    return try {
+        CCJSqlParserUtil.parseStatements(sql).size > 1
+    } catch (e: JSQLParserException) {
+        logger.error(e) { "Fetched exception: $e" }
+        true
     }
 }

@@ -104,7 +104,18 @@ class ValidatorKtTest {
                     Arguments.of("Select * from people;", true),
                     Arguments.of("Select * from people;1=1;", false),
                     Arguments.of("Select;", false),
-                    Arguments.of("", false)
+                    Arguments.of("", false),
+
+                    Arguments.of("SELECT 1; DELETE FROM users", false),
+                    Arguments.of("SELECT * FROM people; DROP TABLE people;", false),
+
+                    Arguments.of("SELECT * FROM people WHERE name = 'x' OR 1=1--", false),
+                    Arguments.of("SELECT * FROM people WHERE name = 'x' OR '1'='1'", false),
+
+                    Arguments.of("SELECT * FROM people WHERE id = 1 # comment", false),
+                    Arguments.of("SELECT * FROM people /* comment */ WHERE id = 1", false),
+
+                    Arguments.of("SELECT * FROM people WHERE status = 'A' OR status = 'B'", true)
             )
         }
     }
