@@ -48,7 +48,22 @@ nazwie nie będzie w `build/libs`.
       obu skryptów
 
 ## Converge
-Zgodne ze specem i clarifications, brak odchyleń. Pełny end-to-end test
-(realne uruchomienie `sh runScheduler.sh` + `sh killScheduler.sh` na żywym
-javie) nie wykonany — brak działającego configu/DB w tym środowisku;
-zweryfikowano logikę (glob resolution + syntax), nie live process kill.
+Zgodne ze specem i clarifications, brak odchyleń.
+
+Pełny E2E test wykonany (build realnego jara `1.0.1`, izolowany katalog w
+scratchpadzie, kopia `testDb.db`):
+- `sh runScheduler.sh` → proces `java -jar DatabaseScheduleExecutor-1.0.1.jar`
+  wystartował, glob poprawnie złapał wersjonowany jar, SQL wykonał się wg
+  crona (log: "SQL statement affected: 28 rows", "Executed 1 times")
+- `sh killScheduler.sh` → proces javy faktycznie zabity, potwierdzone przez
+  `/proc/<pid>/cmdline` wszystkich żyjących procesów `java` (żaden nie ma
+  `DatabaseScheduleExecutor` w cmdline po killu)
+
+Uwaga z testowania (nie defekt w skrypcie): weryfikacja samym
+`pgrep -f DatabaseScheduleExecutor...` z poziomu narzędzia testowego dawała
+false-positive, bo wrapper powłoki narzędzia miał tę nazwę w swojej własnej
+linii poleceń (bo ja sam ją tam wpisałem w komendzie testowej). W realnym
+użyciu (`sh killScheduler.sh` wpisane w terminalu) to nie występuje — cmdline
+terminala nie zawiera nazwy jara. Test poprawiony przez odczyt
+`/proc/<pid>/cmdline` bezpośrednio zamiast polegania na tekście własnej
+komendy testowej.
