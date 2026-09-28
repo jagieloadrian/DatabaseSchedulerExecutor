@@ -38,3 +38,8 @@
 ## Stage 6 — Relocate shell/install scripts + bats coverage ✅ done (see .specs/stage-6-scripts-relocation.md)
 - Move runScheduler.sh/killScheduler.sh/install-service.sh/install-service.ps1 to scripts/
 - Add bats tests for the shell scripts (scripts/test/), wire into CI
+
+## Stage 7 — Fix release packaging gap ✅ done (see .specs/stage-7-release-packaging.md)
+- Removed unused `application` Gradle plugin (dup `lib/`, unused `bin/` launcher, ~69MB zip)
+- Custom `releaseZip` task: fat jar + `app.properties` + `scripts/`, flat, 32MB
+- CI `release` job never built anything before attaching `build/distributions/*` — added `./gradlew releaseZip` step

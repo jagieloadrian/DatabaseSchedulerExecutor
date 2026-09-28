@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm") version "2.0.21"
-    application
 }
 
 group = project.property("group") as String
@@ -50,10 +49,6 @@ kotlin {
     jvmToolchain(17)
 }
 
-application {
-    mainClass.set("com.anjo.MainKt")
-}
-
 tasks.withType<Jar> {
     manifest {
         attributes["Main-Class"] = "com.anjo.MainKt"
@@ -62,4 +57,22 @@ tasks.withType<Jar> {
         from(zipTree(file.absoluteFile))
     }
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+// Release bundle matching the documented Usage flow exactly: fat jar +
+// example config + the run/kill/install scripts, flat, ready to unzip and run.
+val releaseZip by tasks.registering(Zip::class) {
+    archiveBaseName.set(rootProject.name)
+    archiveVersion.set(version.toString())
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+
+    from(tasks.jar)
+    from("src/main/resources/app.properties")
+    from("scripts") {
+        exclude("test/**")
+    }
+}
+
+tasks.named("assemble") {
+    dependsOn(releaseZip)
 }

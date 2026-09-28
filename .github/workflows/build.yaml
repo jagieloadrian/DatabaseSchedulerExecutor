@@ -105,6 +105,9 @@ jobs:
             ${{ runner.os }}-gradle-
       
 
+      - name: Build release zip
+        run: ./gradlew releaseZip
+
       - name: Get version
         id: get_version
         run: |
