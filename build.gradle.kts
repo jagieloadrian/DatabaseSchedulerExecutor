@@ -16,6 +16,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
     implementation("com.github.jsqlparser:jsqlparser:5.1")
 
+    //jdbc drivers
+    implementation("org.postgresql:postgresql:42.7.7")
+    implementation("com.mysql:mysql-connector-j:9.3.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.10")
+    implementation("com.microsoft.sqlserver:mssql-jdbc:13.6.0.jre11")
+    implementation("com.oracle.database.jdbc:ojdbc11:23.8.0.25.04")
+
     //logging
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
     implementation("org.slf4j:slf4j-simple:2.0.16")
@@ -26,6 +33,11 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
+
+    //testcontainers (E2E against real Postgres/MySQL)
+    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
+    testImplementation("org.testcontainers:postgresql:1.21.4")
+    testImplementation("org.testcontainers:mysql:1.21.4")
 }
 
 tasks.test {

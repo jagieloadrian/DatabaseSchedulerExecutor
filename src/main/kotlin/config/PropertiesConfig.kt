@@ -24,6 +24,21 @@ class PropertiesConfig(path: String) {
         return properties["cron"]?.toString() ?: throwException("cron")
     }
 
+    fun getDbType(): String? = properties["dbtype"]?.toString()
+
+    fun getHost(): String? = properties["host"]?.toString()
+
+    fun getPort(): Int? {
+        val raw = properties["port"]?.toString() ?: return null
+        return raw.toIntOrNull() ?: throw IllegalArgumentException("Property 'port' must be a number, got: $raw")
+    }
+
+    fun getDatabase(): String? = properties["database"]?.toString()
+
+    fun getDbUser(): String? = System.getenv("DB_USER") ?: properties["dbuser"]?.toString()
+
+    fun getDbPassword(): String? = System.getenv("DB_PASSWORD") ?: properties["dbpassword"]?.toString()
+
     private fun throwException(property: String): Nothing {
         throw IllegalArgumentException("Cannot read property '$property'")
     }

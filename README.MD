@@ -13,6 +13,7 @@ Kotlin's application to schedule and run background task to execute SQL statemen
 * [Prerequisites](#prerequisites)
 * [Setup](#setup)
 * [Example configuration](#example-configuration)
+* [Database configuration](#database-configuration)
 * [Stop program](#stop-program)
 * [Usage](#usage)
 * [Logging](#logging)
@@ -30,7 +31,7 @@ It's application which execute SQL statement on specific time defined by CRON ex
 ## Technologies Used
 - Kotlin - version 2.0.21
 - Kotlin Coroutines
-- SQLite JDBC
+- JDBC (SQLite, PostgreSQL, MySQL, MariaDB, SQL Server, Oracle)
 - JSQLParser
 - Cron-Utils
 
@@ -40,6 +41,7 @@ List the ready features here:
 - no need to rebuild app, just restart to load properties with new information
 - in case of limits by cron-utils it has to be 5 chars CRON expression with spaces (like in `app.properties` file, cause `CronType.Unix`). See [cron-utils docs](http://cron-parser.com/)
 - program accept one SQL statement due to avoid SQL injection
+- supports SQLite (local file) or a network database (PostgreSQL, MySQL, MariaDB, SQL Server, Oracle)
 
 ## Prerequisites
 - Java 17
@@ -67,6 +69,28 @@ statement=select * from people;
 cron=* * * * *
 ```
 
+## Database configuration
+Two modes, picked by the `dbtype` property.
+
+**SQLite (default)** — leave `dbtype` unset, use `filepath` as shown above. Nothing else changes.
+
+**Network database** — set `dbtype` to one of `postgresql`, `mysql`, `mariadb`, `mssql`, `oracle`,
+plus connection details:
+```properties
+dbtype=postgresql
+host=localhost
+port=5432
+database=mydb
+dbuser=postgres
+dbpassword=secret
+statement=select * from people;
+cron=* * * * *
+```
+- `port` is optional, defaults per `dbtype` (postgresql 5432, mysql/mariadb 3306, mssql 1433, oracle 1521)
+- `dbuser`/`dbpassword` can instead be provided via the `DB_USER`/`DB_PASSWORD` environment
+  variables — if set, they take priority over the properties file (useful to avoid plaintext
+  credentials in `app.properties`)
+
 ## Stop program
 To stop program (especially when you run by `runScheduler.sh`) run command `sh killScheduler.sh`
 Each instance tracks its own PID in `scheduler.pid` in the run folder, so running multiple
@@ -88,8 +112,7 @@ run folder (`> output.log 2>&1`).
 - Link: [DBSchedulerExecutor.zip](https://github.com/jagieloadrian/DatabaseSchedulerExecutor/releases/latest)
 
 ## Room for Improvement
-- Add specific name for process ID
-- Handle more databases (Oracle, MySql, Postgres) 
+- Connection pooling, if the app ever needs to handle concurrent statements instead of one per run
 
 ## Project Status
 Project is: finished

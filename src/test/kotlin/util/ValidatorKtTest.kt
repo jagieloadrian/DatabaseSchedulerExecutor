@@ -57,6 +57,28 @@ class ValidatorKtTest {
         exception.message shouldBe expectedMessage
     }
 
+    @Test
+    fun `given valid network db config when validateProperties then does not throw`() {
+        //given
+        val props = PropertiesConfig("src/test/resources/networkApp.properties")
+
+        //when + then
+        validateProperties(props)
+    }
+
+    @Test
+    fun `given network config missing host when validateProperties then throw exception`() {
+        //given
+        val props = PropertiesConfig("src/test/resources/invalidNetworkApp.properties")
+        val expectedMessage = "DB path or statement must be properly specified"
+
+        //when
+        val exception = shouldThrow<IllegalArgumentException> { validateProperties(props) }
+
+        //then
+        exception.message shouldBe expectedMessage
+    }
+
     companion object {
         @JvmStatic
         fun providePathAndExpected(): List<Arguments> {

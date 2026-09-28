@@ -17,7 +17,7 @@
 - Add specific process name/PID labeling.
   Needed for `killScheduler.sh` safety when multiple instances run.
 
-## Stage 4 — Feature: multi-DB support
+## Stage 4 — Feature: multi-DB support ✅ done (see .specs/stage-4-multi-db.md)
 - Extend `DatabaseConnectionProvider`/`DbExecutor` beyond SQLite → Oracle, MySQL, PostgreSQL.
   JDBC abstraction already present, mainly driver dependency + connection string per DB type.
 

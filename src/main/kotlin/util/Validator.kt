@@ -1,6 +1,7 @@
 package com.anjo.util
 
 import com.anjo.config.PropertiesConfig
+import com.anjo.service.DbType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.sf.jsqlparser.JSQLParserException
 import net.sf.jsqlparser.parser.CCJSqlParserManager
@@ -52,9 +53,26 @@ fun validateSql(sql: String?): Boolean {
 }
 
 fun validateProperties(configProps: PropertiesConfig) {
-    val dbPath = validatePath(configProps.getFileDb())
     val statement = validateSql(configProps.getStatement())
-    require(dbPath and statement) { "DB path or statement must be properly specified" }
+    val dbType = DbType.fromStringOrSqlite(configProps.getDbType())
+    val dbValid = if (dbType == DbType.SQLITE) {
+        validatePath(configProps.getFileDb())
+    } else {
+        validateNetworkDbConfig(configProps, dbType)
+    }
+    require(dbValid and statement) { "DB path or statement must be properly specified" }
+}
+
+fun validateNetworkDbConfig(configProps: PropertiesConfig, dbType: DbType): Boolean {
+    val host = configProps.getHost()
+    val database = configProps.getDatabase()
+    val user = configProps.getDbUser()
+    return when {
+        host.isNullOrBlank()     -> { logger.warn { "Provide host for dbtype=$dbType" }; false }
+        database.isNullOrBlank() -> { logger.warn { "Provide database for dbtype=$dbType" }; false }
+        user.isNullOrBlank()     -> { logger.warn { "Provide dbuser (property or DB_USER env) for dbtype=$dbType" }; false }
+        else                     -> true
+    }
 }
 
 private fun doesntContainSqlInjection(sql: String): Boolean {
