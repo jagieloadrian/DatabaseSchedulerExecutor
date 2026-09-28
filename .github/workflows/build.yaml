@@ -37,7 +37,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y bats
 
       - name: Run shell script tests
-        run: bats src/test/scripts/run_kill.bats src/test/scripts/install_service.bats
+        run: bats scripts/test/run_kill.bats scripts/test/install_service.bats
 
   test-windows-install:
     name: Test Windows install script
@@ -62,7 +62,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path install-test | Out-Null
           Copy-Item build\libs\DatabaseScheduleExecutor-*.jar install-test\
           Copy-Item src\main\resources\app.properties install-test\
-          Copy-Item src\test\resources\install-service.ps1 install-test\
+          Copy-Item scripts\install-service.ps1 install-test\
 
       - name: Run install-service.ps1
         shell: pwsh

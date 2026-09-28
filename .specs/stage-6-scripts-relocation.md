@@ -106,3 +106,28 @@ wypchnięty, ten sam limit co reszta CI w tej sesji) — jeśli
 `ubuntu-latest` runner ma inny stan `apt` cache niż oczekiwany, `apt-get
 update` powinien to pokryć, ale to ostatecznie potwierdzi dopiero pierwszy
 PR/push.
+
+## Korekta (po fakcie)
+Clarify #2 wyżej ("`src/test/resources/` dosłownie") okazał się
+nieporozumieniem — użytkownik doprecyzował, że chodziło o osobny folder
+`scripts/` (dokładnie ta opcja, którą sam rekomendowałem w pierwszej
+rundzie pytań, zanim user wybrał inaczej). Finalna, aktualna lokalizacja:
+
+- `scripts/runScheduler.sh`, `scripts/killScheduler.sh`,
+  `scripts/install-service.sh`, `scripts/install-service.ps1`
+- `scripts/test/run_kill.bats`, `scripts/test/install_service.bats`
+  (przeniesione razem ze skryptami, osobno od `src/test/` Kotlina)
+
+Wszystkie powyższe wzmianki `src/test/resources/<script>` /
+`src/test/scripts/<test>.bats` w tym dokumencie opisują stan przejściowy,
+nie finalny. Zaktualizowane przy korekcie:
+- README (dwie linie ze ścieżką: Setup krok 3, "Install as a service")
+- `scripts/test/*.bats` — `SCRIPT_SRC_DIR` przeliczony na nową względną ścieżkę
+- `.github/workflows/build.yaml` — krok `bats` + Windows job (kopiowanie
+  `install-service.ps1`)
+
+Zweryfikowane ponownie po korekcie: `bats scripts/test/*.bats` → 8/8
+`ok` (bats-core ponownie sklonowany do scratchpada), `python3 -c "import
+yaml..."` na workflow → OK, `grep` na README dla
+`runScheduler|killScheduler|install-service` → wszystkie 11 wystąpień
+sprawdzone, tylko te dwie miały ścieżkę, obie poprawne po korekcie.

@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
-# Guard-clause regression tests for src/test/resources/install-service.sh.
+# Guard-clause regression tests for scripts/install-service.sh.
 # No real `enable --now` here (needs root) — see .specs/stage-5-service-install.md
 # for the systemd-analyze verify + manual root-install verification already done.
 
-SCRIPT_SRC_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../resources" && pwd)"
+SCRIPT_SRC_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
 
 setup() {
   TEST_DIR="$(mktemp -d)"

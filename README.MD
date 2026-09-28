@@ -60,7 +60,7 @@ List the ready features here:
 - repeat 2 points from 2 (Build manual).
 - copy properties from `src/main/resources/app.properties` to main folder and adjust to your needs
 - copy jar from `build/libs` to main folder
-- copy `runScheduler.sh` and `killScheduler.sh` from `src/test/resources/` to main folder
+- copy `runScheduler.sh` and `killScheduler.sh` from `scripts/` to main folder
 - run command `sh runScheduler.sh`
 
 ## Example configuration
@@ -103,7 +103,7 @@ in the same folder.
 ## Install as a service
 Alternative to `runScheduler.sh`/`killScheduler.sh` — installs the app as an OS-managed service
 that survives reboots and restarts itself on failure. `install-service.sh`/`install-service.ps1`
-live in `src/test/resources/` — copy the one for your OS to the folder with the built jar +
+live in `scripts/` — copy the one for your OS to the folder with the built jar +
 `app.properties` (same as step 3 in Setup), then run it from there.
 
 **Linux (systemd)**:

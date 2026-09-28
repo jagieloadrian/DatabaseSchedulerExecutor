@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
-# Regression tests for src/test/resources/runScheduler.sh + killScheduler.sh.
+# Regression tests for scripts/runScheduler.sh + killScheduler.sh.
 # Fakes `java` (a sleeping process) so these stay fast/deterministic and
 # don't need a real JVM/DB — the real jar was already E2E-tested manually
 # for Stage 2/3 (see .specs/stage-2-version-drift.md, stage-3-process-naming.md).
 
-SCRIPT_SRC_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../resources" && pwd)"
+SCRIPT_SRC_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
 
 setup() {
   TEST_DIR="$(mktemp -d)"
