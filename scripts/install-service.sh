@@ -25,6 +25,7 @@ fi
 mkdir -p "$INSTALL_DIR"
 cp "$JAR" "$INSTALL_DIR/"
 cp "$CONFIG" "$INSTALL_DIR/"
+chmod 600 "$INSTALL_DIR/app.properties"
 JAR_NAME="$(basename "$JAR")"
 
 cat > /etc/systemd/system/db-scheduler.service <<EOF

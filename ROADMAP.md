@@ -43,3 +43,10 @@
 - Removed unused `application` Gradle plugin (dup `lib/`, unused `bin/` launcher, ~69MB zip)
 - Custom `releaseZip` task: fat jar + `app.properties` + `scripts/`, flat, 32MB
 - CI `release` job never built anything before attaching `build/distributions/*` — added `./gradlew releaseZip` step
+
+## Stage 8 — Cleanup + small hardening ✅ done (see .specs/stage-8-cleanup-hardening.md)
+- Remove redundant double-close in `DbExecutor.kt`
+- Document connection-retry behavior (CRON tick = retry) in README
+- README note: `app.properties` permissions when using plaintext `dbpassword`
+- Release notes auto-generation in CI
+- Cleanup pass over Stage 1-7 leftovers (`.gitlab-ci.yml` already removed)

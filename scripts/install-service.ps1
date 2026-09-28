@@ -29,6 +29,7 @@ Copy-Item $Config -Destination $InstallDir -Force
 
 $JarPath = Join-Path $InstallDir $Jar.Name
 $ConfigPath = Join-Path $InstallDir "app.properties"
+icacls $ConfigPath /inheritance:r /grant:r "SYSTEM:F" "Administrators:F" | Out-Null
 $Command = "java -jar `"$JarPath`" --config `"$ConfigPath`""
 
 schtasks /Create /TN "DatabaseSchedulerExecutor" /TR $Command /SC ONSTART /RU SYSTEM /RL HIGHEST /F | Out-Null

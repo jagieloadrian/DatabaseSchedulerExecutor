@@ -95,6 +95,10 @@ cron=* * * * *
 - `oracle`: `database` is the **service name** (e.g. `freepdb1`), not a legacy SID
 - `mssql`: connects with `trustServerCertificate=true` by default (channel still encrypted, skips
   CA validation) — works out of the box against internal SQL Server instances without their own CA
+- Connection failures retry automatically (3 attempts, exponential backoff: 1s/2s); if still
+  failing, that run is skipped and logged — the next CRON tick tries again
+- If using plaintext `dbpassword`, restrict the file's permissions (`chmod 600 app.properties`
+  on Linux) since it's stored as-is. `install-service.sh`/`.ps1` do this automatically.
 
 ## Stop program
 To stop program (especially when you run by `runScheduler.sh`) run command `sh killScheduler.sh`

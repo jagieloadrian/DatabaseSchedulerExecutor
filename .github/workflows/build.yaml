@@ -121,4 +121,5 @@ jobs:
           name: Release v${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
+          generateReleaseNotes: true
           files: build/distributions/*
