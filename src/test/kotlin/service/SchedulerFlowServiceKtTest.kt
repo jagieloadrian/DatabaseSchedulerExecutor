@@ -24,7 +24,7 @@ class SchedulerFlowServiceKtTest {
             runSchedulerFlow({ 100.milliseconds }) { calls++;println("Executed $calls times") }
         }
 
-        advanceTimeBy(500)
+        advanceTimeBy(500.milliseconds)
         //then
         calls shouldBe timeDuration
         job.cancel()
