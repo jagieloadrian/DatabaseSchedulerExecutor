@@ -9,7 +9,7 @@
 - Add example `app.properties` snippet inline
 - Add short logging section (slf4j-simple output location/level)
 
-## Stage 2 — Correctness/consistency
+## Stage 2 — Correctness/consistency ✅ done (see .specs/stage-2-version-drift.md)
 - Jar filename in README hardcoded `-1.0.jar`, CI auto-bumps version from `gradle.properties` → drift risk.
   Either template the README command with `$VERSION` or note "check latest release name".
 

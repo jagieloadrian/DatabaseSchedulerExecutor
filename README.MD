@@ -52,7 +52,7 @@ List the ready features here:
 2. Build manual:
 - `gradle clean build :jar` to build fatJar, 
 - copy properties from `src/main/resources/app.properties` to `build/libs` and adjust to your needs
-- run command `java -jar DatabaseScheduleExecutor-1.0.jar --config $pathToConfig.properties`
+- run command `java -jar DatabaseScheduleExecutor-*.jar --config $pathToConfig.properties` (jar name includes the build version, `*` picks it up regardless)
 3. Build code and run by sh: 
 - repeat 2 points from 2 (Build manual).
 - copy properties from `src/main/resources/app.properties` to main folder and adjust to your needs
