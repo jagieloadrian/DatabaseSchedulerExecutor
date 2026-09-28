@@ -28,8 +28,8 @@ class DriverManagerConnectionProviderTest {
         buildJdbcUrl(DbType.POSTGRESQL, "localhost", 5432, "mydb") shouldBe "jdbc:postgresql://localhost:5432/mydb"
         buildJdbcUrl(DbType.MYSQL, "localhost", 3306, "mydb") shouldBe "jdbc:mysql://localhost:3306/mydb"
         buildJdbcUrl(DbType.MARIADB, "localhost", 3306, "mydb") shouldBe "jdbc:mariadb://localhost:3306/mydb"
-        buildJdbcUrl(DbType.MSSQL, "localhost", 1433, "mydb") shouldBe "jdbc:sqlserver://localhost:1433;databaseName=mydb"
-        buildJdbcUrl(DbType.ORACLE, "localhost", 1521, "mydb") shouldBe "jdbc:oracle:thin:@localhost:1521:mydb"
+        buildJdbcUrl(DbType.MSSQL, "localhost", 1433, "mydb") shouldBe "jdbc:sqlserver://localhost:1433;databaseName=mydb;trustServerCertificate=true"
+        buildJdbcUrl(DbType.ORACLE, "localhost", 1521, "mydb") shouldBe "jdbc:oracle:thin:@//localhost:1521/mydb"
     }
 
     @Test

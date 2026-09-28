@@ -92,6 +92,9 @@ cron=* * * * *
 - `dbuser`/`dbpassword` can instead be provided via the `DB_USER`/`DB_PASSWORD` environment
   variables — if set, they take priority over the properties file (useful to avoid plaintext
   credentials in `app.properties`)
+- `oracle`: `database` is the **service name** (e.g. `freepdb1`), not a legacy SID
+- `mssql`: connects with `trustServerCertificate=true` by default (channel still encrypted, skips
+  CA validation) — works out of the box against internal SQL Server instances without their own CA
 
 ## Stop program
 To stop program (especially when you run by `runScheduler.sh`) run command `sh killScheduler.sh`

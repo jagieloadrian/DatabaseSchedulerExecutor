@@ -91,7 +91,7 @@ dbpassword=secret
 - [x] Istniejący `app.properties` z `filepath` (SQLite) działa bez zmian (regresja = 0)
 - [x] `dbtype=postgresql` + realny kontener Docker: connect + SQL execute działa
 - [x] `dbtype=mysql` + realny kontener Docker: connect + SQL execute działa
-- [x] `dbtype=mariadb`/`mssql`/`oracle`: URL builder + validator pokryte testem jednostkowym (E2E best-effort, patrz Zakres)
+- [x] `dbtype=mariadb`/`mssql`/`oracle`: pełne E2E przez realny kontener Docker (patrz Follow-up niżej — best-effort limit zamknięty)
 - [x] Walidacja configu rozróżnia tryb SQLite vs sieciowy, sensowny błąd gdy brak wymaganych pól
 - [x] README udokumentowane
 
@@ -119,11 +119,42 @@ Weryfikacja:
   zbudowany przez `DriverManagerConnectionProvider.network(DbType.X, ...)`
   (czyli dokładnie tą samą ścieżkę co produkcyjny `Main.kt`), realny
   `SELECT` przez `executeOperation` z `DbExecutor` zwrócił poprawny wynik
-- MariaDB/MSSQL/Oracle: **tylko unit test** URL-buildera + parsera `dbtype`
-  (`buildJdbcUrl`, `DbType.fromStringOrSqlite`) — zgodnie z best-effort
-  planem ze specu, kontenery dla tych trzech nie zostały odpalone (cięższe
-  obrazy, MSSQL wymaga akceptacji EULA przez zmienną środowiskową, Oracle
-  obraz dużo większy) — jeśli chcesz pełne E2E i dla nich, to osobny follow-up
 - SQLite: regresja zero — istniejący tryb `filepath` przechodzi przez
   dokładnie tę samą ścieżkę kodu co przed Stage 4 (`DriverManagerConnectionProvider.sqlite()`
   robi to samo co stary jednoargumentowy konstruktor)
+
+## Follow-up: pełne E2E dla MariaDB/MSSQL/Oracle
+Best-effort limit z Zakresu zamknięty na żądanie użytkownika — dodane
+kontenery `org.testcontainers:mariadb`/`mssqlserver`/`oracle-free` (wszystkie
+1.21.4, pasują do już przypiętej wersji). `NetworkDatabaseE2ETest.kt`
+rozszerzony do 5 testów, **wszystkie 5 baz z README/tej specyfikacji
+realnie przetestowane E2E przez Docker**, nie tylko unit testem URL-buildera.
+
+Dwa prawdziwe bugi w kodzie produkcyjnym znalezione przez to testowanie
+(nie tylko problemy testu — realne, odtwarzalne na żywych kontenerach):
+
+1. **Oracle URL był zły format.** `buildJdbcUrl` dla `ORACLE` używał
+   starego stylu SID (`jdbc:oracle:thin:@host:port:SID`). Realny kontener
+   (i większość dzisiejszych wdrożeń Oracle, łącznie z Oracle Free/XE PDB)
+   używa service name, nie SID → `ORA-12505: SID ... is not registered
+   with the listener`. Naprawione na slash-style
+   (`jdbc:oracle:thin:@//host:port/serviceName`) —
+   `DatabaseConnectionProvider.kt:33`. README dopisane: `database` dla
+   `oracle` to service name.
+2. **MSSQL default łamał się na self-signed cert.** Nowszy
+   `mssql-jdbc` domyślnie wymaga `encrypt=true` z walidacją CA. Kontener
+   testowy (i typowy on-prem SQL Server bez własnego CA) ma self-signed
+   cert → `SSLHandshakeException`. Zapytałem użytkownika wprost (decyzja
+   security-relevant, nie moja do cichego podjęcia) — wybrał dodanie
+   `trustServerCertificate=true` na stałe do domyślnego URL-a (kanał
+   nadal szyfrowany, bez walidacji CA). `DatabaseConnectionProvider.kt:32`,
+   README dopisane.
+
+Test-side fix (nie produkcyjny bug): `MSSQLServerContainer.getDatabaseName()`
+rzuca `UnsupportedOperationException` w testcontainers — test używa
+`"master"` (domyślna baza kontenera) zamiast tego gettera.
+
+Zweryfikowane: `./gradlew clean test` — pełny zielony build, `bash`
+potwierdzenie `tests="5" skipped="0" failures="0" errors="0"` dla
+`NetworkDatabaseE2ETest` przed i po fixach (pierwszy przebieg złapał oba
+bugi realnie, nie hipotetycznie).

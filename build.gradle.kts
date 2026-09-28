@@ -34,10 +34,13 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
 
-    //testcontainers (E2E against real Postgres/MySQL)
+    //testcontainers (E2E against real Postgres/MySQL/MariaDB/MSSQL/Oracle)
     testImplementation("org.testcontainers:junit-jupiter:1.21.4")
     testImplementation("org.testcontainers:postgresql:1.21.4")
     testImplementation("org.testcontainers:mysql:1.21.4")
+    testImplementation("org.testcontainers:mariadb:1.21.4")
+    testImplementation("org.testcontainers:mssqlserver:1.21.4")
+    testImplementation("org.testcontainers:oracle-free:1.21.4")
 }
 
 tasks.test {

@@ -29,8 +29,8 @@ fun buildJdbcUrl(dbType: DbType, host: String, port: Int, database: String): Str
     DbType.POSTGRESQL -> "jdbc:postgresql://$host:$port/$database"
     DbType.MYSQL      -> "jdbc:mysql://$host:$port/$database"
     DbType.MARIADB    -> "jdbc:mariadb://$host:$port/$database"
-    DbType.MSSQL      -> "jdbc:sqlserver://$host:$port;databaseName=$database"
-    DbType.ORACLE     -> "jdbc:oracle:thin:@$host:$port:$database"
+    DbType.MSSQL      -> "jdbc:sqlserver://$host:$port;databaseName=$database;trustServerCertificate=true" // channel still encrypted, skips CA validation (common for internal SQL Server without its own CA)
+    DbType.ORACLE     -> "jdbc:oracle:thin:@//$host:$port/$database" // service name, not legacy SID
 }
 
 class DriverManagerConnectionProvider(
