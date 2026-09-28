@@ -21,7 +21,7 @@
 - Extend `DatabaseConnectionProvider`/`DbExecutor` beyond SQLite → Oracle, MySQL, PostgreSQL.
   JDBC abstraction already present, mainly driver dependency + connection string per DB type.
 
-## Stage 5 — Easier launch (replace runScheduler.sh/killScheduler.sh)
+## Stage 5 — Easier launch (replace runScheduler.sh/killScheduler.sh) ✅ done (see .specs/stage-5-service-install.md)
 - Current scripts use `nohup` + `pgrep -f` — breaks with multiple instances/configs, no auto-restart, no boot start.
   Also `runScheduler.sh` hardcodes jar version `-1.0.jar` while actual build is `-1.0.1.jar` (see Stage 2 drift).
 - Linux: `install-service.sh` — installs as systemd unit (`systemctl enable --now db-scheduler`),

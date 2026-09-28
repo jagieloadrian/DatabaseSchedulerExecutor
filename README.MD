@@ -15,6 +15,7 @@ Kotlin's application to schedule and run background task to execute SQL statemen
 * [Example configuration](#example-configuration)
 * [Database configuration](#database-configuration)
 * [Stop program](#stop-program)
+* [Install as a service](#install-as-a-service)
 * [Usage](#usage)
 * [Logging](#logging)
 * [Download](#download)
@@ -97,6 +98,30 @@ Each instance tracks its own PID in `scheduler.pid` in the run folder, so runnin
 instances from separate folders is safe — `killScheduler.sh` only stops the instance in the
 folder it's run from. `runScheduler.sh` refuses to start a duplicate if one is already running
 in the same folder.
+
+## Install as a service
+Alternative to `runScheduler.sh`/`killScheduler.sh` — installs the app as an OS-managed service
+that survives reboots and restarts itself on failure. Run from the folder with the built jar +
+`app.properties` (same as step 3 in Setup).
+
+**Linux (systemd)**:
+```
+sudo sh install-service.sh
+```
+Installs to `/opt/db-scheduler` (override: `sudo sh install-service.sh /custom/path`), enables
+and starts it. Status: `systemctl status db-scheduler`, logs: `journalctl -u db-scheduler -f`.
+Uninstall: `systemctl disable --now db-scheduler && rm /etc/systemd/system/db-scheduler.service`
+
+**Windows (scheduled task, runs at startup)**:
+```
+install-service.ps1
+```
+Run as Administrator. Installs to `%ProgramFiles%\DatabaseSchedulerExecutor` (override with
+`-InstallDir`). Status: `schtasks /Query /TN DatabaseSchedulerExecutor`.
+Uninstall: `schtasks /Delete /TN DatabaseSchedulerExecutor /F`
+
+Both run the jar directly as root/SYSTEM (no dedicated service account) and don't use
+`scheduler.pid` — the OS tracks the process instead.
 
 ## Usage
 - Download zip from link below and unzip in destiny folder
