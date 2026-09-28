@@ -82,5 +82,24 @@ sudo w środowisku):
 - `install-service.ps1`: brak `pwsh` w tym środowisku (Linux, bez
   Windows) — zweryfikowany tylko manualnym przeglądem (nawiasy/cudzysłowy
   zbalansowane, standardowe cmdlety, poprawny idiom sprawdzania admina).
-  **Nie uruchomiony ani razu** — jeśli chcesz pewność, przetestuj na
-  Windows albo powiedz, to poszukam innego sposobu weryfikacji.
+
+## Follow-up: realna weryfikacja Windows przez CI
+Brak lokalnego Windows/`pwsh` rozwiązany przez dodanie joba
+`test-windows-install` do `.github/workflows/build.yaml`
+(`runs-on: windows-latest`, GitHub-hosted runner ma `pwsh` i realny
+Windows, uruchamia się z uprawnieniami wystarczającymi do `schtasks`):
+1. build jara (`.\gradlew.bat assemble`)
+2. staging folderu z jarem + `app.properties` + `install-service.ps1`
+3. `.\install-service.ps1` — realne wykonanie na żywym Windows
+4. `schtasks /Query /TN DatabaseSchedulerExecutor` — potwierdza że task
+   faktycznie powstał
+5. `schtasks /Delete ... /F` z `if: always()` — sprząta i przy okazji
+   testuje komendę uninstall z README
+
+Zweryfikowane lokalnie: składnia YAML (`python3 -c "import yaml..."`,
+OK). **Nie zweryfikowane**: faktyczne przejście tego joba na GitHub Actions
+— branch nie jest wypchnięty na remote, a workflow triggeruje się na
+`push` do `main` / `pull_request`, nie na zwykły push do feature brancha.
+Realne potwierdzenie będzie dopiero przy PR/pushu do main. To zamyka lukę
+"install-service.ps1 nigdy nie uruchomiony" projektowo (jest teraz ścieżka
+do realnego uruchomienia), nie faktycznie w tej sesji.

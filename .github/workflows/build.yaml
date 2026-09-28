@@ -33,6 +33,45 @@ jobs:
       - name: Build project
         run: ./gradlew build
 
+  test-windows-install:
+    name: Test Windows install script
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build jar
+        run: .\gradlew.bat assemble
+
+      - name: Stage install folder
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path install-test | Out-Null
+          Copy-Item build\libs\DatabaseScheduleExecutor-*.jar install-test\
+          Copy-Item src\main\resources\app.properties install-test\
+          Copy-Item install-service.ps1 install-test\
+
+      - name: Run install-service.ps1
+        shell: pwsh
+        working-directory: install-test
+        run: .\install-service.ps1
+
+      - name: Verify scheduled task was created
+        shell: pwsh
+        run: schtasks /Query /TN DatabaseSchedulerExecutor
+
+      - name: Uninstall (also verifies README uninstall command)
+        if: always()
+        shell: pwsh
+        run: schtasks /Delete /TN DatabaseSchedulerExecutor /F
+
   release:
     name: Release on merge
     runs-on: ubuntu-latest
