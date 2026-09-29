@@ -6,28 +6,51 @@ import net.sf.jsqlparser.statement.delete.Delete
 import net.sf.jsqlparser.statement.insert.Insert
 import net.sf.jsqlparser.statement.select.Select
 import net.sf.jsqlparser.statement.update.Update
+import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Statement
 
 private val logger = KotlinLogging.logger {}
 
+private const val MAX_CONNECTION_ATTEMPTS = 3
+private const val INITIAL_BACKOFF_MS = 1000L
+
 fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionProvider) {
-    val driveConnection = connectionProvider.getConnection()
-    driveConnection.use { connection ->
-        logger.info { "Creating database connection..." }
-        connection.createStatement().use { statement ->
-            logger.info { "Execute sql statement..." }
-            executeOperation(sql, statement).also {
-                if (it.toIntOrNull() != null) {
-                    logger.info { "SQL statement affected: $it rows" }
-                } else {
-                    logger.info { "SQL statement failed to execute with message: $it" }
+    try {
+        connectWithRetry(connectionProvider).use { connection ->
+            logger.info { "Creating database connection..." }
+            connection.createStatement().use { statement ->
+                logger.info { "Execute sql statement..." }
+                executeOperation(sql, statement).also {
+                    if (it.toIntOrNull() != null) {
+                        logger.info { "SQL statement affected: $it rows" }
+                    } else {
+                        logger.info { "SQL statement failed to execute with message: $it" }
+                    }
                 }
+                logger.info { "Successfully executed! Close connection." }
             }
-            logger.info { "Successfully executed! Close connection." }
+        }
+    } catch (e: Exception) {
+        // A persistent connection failure (retries exhausted) must not crash the scheduler loop —
+        // just skip this tick, the next CRON tick will try again.
+        logger.error(e) { "Failed to run scheduled SQL statement, will retry on next tick." }
+    }
+}
+
+private fun connectWithRetry(connectionProvider: DatabaseConnectionProvider): Connection {
+    var backoffMs = INITIAL_BACKOFF_MS
+    for (attempt in 1..MAX_CONNECTION_ATTEMPTS) {
+        try {
+            return connectionProvider.getConnection()
+        } catch (e: SQLException) {
+            if (attempt == MAX_CONNECTION_ATTEMPTS) throw e
+            logger.warn(e) { "Connection attempt $attempt/$MAX_CONNECTION_ATTEMPTS failed, retrying in ${backoffMs}ms..." }
+            Thread.sleep(backoffMs)
+            backoffMs *= 2
         }
     }
-    driveConnection.close()
+    error("unreachable")
 }
 
 fun executeOperation(query: String, statement: Statement): String {

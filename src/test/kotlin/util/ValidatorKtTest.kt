@@ -57,6 +57,28 @@ class ValidatorKtTest {
         exception.message shouldBe expectedMessage
     }
 
+    @Test
+    fun `given valid network db config when validateProperties then does not throw`() {
+        //given
+        val props = PropertiesConfig("src/test/resources/networkApp.properties")
+
+        //when + then
+        validateProperties(props)
+    }
+
+    @Test
+    fun `given network config missing host when validateProperties then throw exception`() {
+        //given
+        val props = PropertiesConfig("src/test/resources/invalidNetworkApp.properties")
+        val expectedMessage = "DB path or statement must be properly specified"
+
+        //when
+        val exception = shouldThrow<IllegalArgumentException> { validateProperties(props) }
+
+        //then
+        exception.message shouldBe expectedMessage
+    }
+
     companion object {
         @JvmStatic
         fun providePathAndExpected(): List<Arguments> {
@@ -82,7 +104,18 @@ class ValidatorKtTest {
                     Arguments.of("Select * from people;", true),
                     Arguments.of("Select * from people;1=1;", false),
                     Arguments.of("Select;", false),
-                    Arguments.of("", false)
+                    Arguments.of("", false),
+
+                    Arguments.of("SELECT 1; DELETE FROM users", false),
+                    Arguments.of("SELECT * FROM people; DROP TABLE people;", false),
+
+                    Arguments.of("SELECT * FROM people WHERE name = 'x' OR 1=1--", false),
+                    Arguments.of("SELECT * FROM people WHERE name = 'x' OR '1'='1'", false),
+
+                    Arguments.of("SELECT * FROM people WHERE id = 1 # comment", false),
+                    Arguments.of("SELECT * FROM people /* comment */ WHERE id = 1", false),
+
+                    Arguments.of("SELECT * FROM people WHERE status = 'A' OR status = 'B'", true)
             )
         }
     }

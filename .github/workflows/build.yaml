@@ -33,6 +33,51 @@ jobs:
       - name: Build project
         run: ./gradlew build
 
+      - name: Install bats
+        run: sudo apt-get update && sudo apt-get install -y bats
+
+      - name: Run shell script tests
+        run: bats scripts/test/run_kill.bats scripts/test/install_service.bats
+
+  test-windows-install:
+    name: Test Windows install script
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build jar
+        run: .\gradlew.bat assemble
+
+      - name: Stage install folder
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path install-test | Out-Null
+          Copy-Item build\libs\DatabaseScheduleExecutor-*.jar install-test\
+          Copy-Item src\main\resources\app.properties install-test\
+          Copy-Item scripts\install-service.ps1 install-test\
+
+      - name: Run install-service.ps1
+        shell: pwsh
+        working-directory: install-test
+        run: .\install-service.ps1
+
+      - name: Verify scheduled task was created
+        shell: pwsh
+        run: schtasks /Query /TN DatabaseSchedulerExecutor
+
+      - name: Uninstall (also verifies README uninstall command)
+        if: always()
+        shell: pwsh
+        run: schtasks /Delete /TN DatabaseSchedulerExecutor /F
+
   release:
     name: Release on merge
     runs-on: ubuntu-latest
@@ -60,6 +105,9 @@ jobs:
             ${{ runner.os }}-gradle-
       
 
+      - name: Build release zip
+        run: ./gradlew releaseZip
+
       - name: Get version
         id: get_version
         run: |
@@ -73,4 +121,5 @@ jobs:
           name: Release v${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
+          generateReleaseNotes: true
           files: build/distributions/*

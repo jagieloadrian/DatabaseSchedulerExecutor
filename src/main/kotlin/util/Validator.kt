@@ -1,14 +1,10 @@
 package com.anjo.util
 
 import com.anjo.config.PropertiesConfig
+import com.anjo.service.DbType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.sf.jsqlparser.JSQLParserException
-import net.sf.jsqlparser.parser.CCJSqlParserManager
 import net.sf.jsqlparser.parser.CCJSqlParserUtil
-import net.sf.jsqlparser.statement.delete.Delete
-import net.sf.jsqlparser.statement.insert.Insert
-import net.sf.jsqlparser.statement.select.Select
-import net.sf.jsqlparser.statement.update.Update
 import java.io.File
 
 private val logger = KotlinLogging.logger {}
@@ -52,16 +48,39 @@ fun validateSql(sql: String?): Boolean {
 }
 
 fun validateProperties(configProps: PropertiesConfig) {
-    val dbPath = validatePath(configProps.getFileDb())
     val statement = validateSql(configProps.getStatement())
-    require(dbPath and statement) { "DB path or statement must be properly specified" }
+    val dbType = DbType.fromStringOrSqlite(configProps.getDbType())
+    val dbValid = if (dbType == DbType.SQLITE) {
+        validatePath(configProps.getFileDb())
+    } else {
+        validateNetworkDbConfig(configProps, dbType)
+    }
+    require(dbValid and statement) { "DB path or statement must be properly specified" }
+}
+
+fun validateNetworkDbConfig(configProps: PropertiesConfig, dbType: DbType): Boolean {
+    val host = configProps.getHost()
+    val database = configProps.getDatabase()
+    val user = configProps.getDbUser()
+    return when {
+        host.isNullOrBlank()     -> { logger.warn { "Provide host for dbtype=$dbType" }; false }
+        database.isNullOrBlank() -> { logger.warn { "Provide database for dbtype=$dbType" }; false }
+        user.isNullOrBlank()     -> { logger.warn { "Provide dbuser (property or DB_USER env) for dbtype=$dbType" }; false }
+        else                     -> true
+    }
 }
 
 private fun doesntContainSqlInjection(sql: String): Boolean {
+    if (containsStackedStatements(sql)) {
+        logger.error { "SQ" +
+                "L contains more than one statement (stacked query)" }
+        return false
+    }
     val patterns = listOf(
-            ".*(;.*;)+.*",
             ".*--.*",
-            ".*' OR '.*=.*",
+            ".*#.*",
+            ".*/\\*.*\\*/.*",
+            ".*'\\s*OR\\s*('.*'|\\d+\\s*=\\s*\\d+).*",
             ".*DROP.*",
             ".*ALTER.*",
             ".*TRUNCATE.*"
@@ -75,17 +94,11 @@ private fun doesntContainSqlInjection(sql: String): Boolean {
     }
 }
 
-fun checkSqlOperationUsingParser(query: String): String {
-    try {
-        val statement = CCJSqlParserUtil.parse(query)
-        return when (statement) {
-            is Select -> "SELECT Operation"
-            is Insert -> "INSERT Operation"
-            is Update -> "UPDATE Operation"
-            is Delete -> "DELETE Operation"
-            else      -> "Unknown Operation"
-        }
-    } catch (e: Exception) {
-        return "Invalid SQL"
+private fun containsStackedStatements(sql: String): Boolean {
+    return try {
+        CCJSqlParserUtil.parseStatements(sql).size > 1
+    } catch (e: JSQLParserException) {
+        logger.error(e) { "Fetched exception: $e" }
+        true
     }
 }
