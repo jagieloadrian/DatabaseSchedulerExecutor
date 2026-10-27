@@ -30,7 +30,7 @@ Kotlin's application to schedule and run background task to execute SQL statemen
 It's application which execute SQL statement on specific time defined by CRON expression. 
 
 ## Technologies Used
-- Kotlin - version 2.0.21
+- Kotlin - version 2.4.21
 - Kotlin Coroutines
 - JDBC (SQLite, PostgreSQL, MySQL, MariaDB, SQL Server, Oracle)
 - JSQLParser

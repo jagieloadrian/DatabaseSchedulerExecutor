@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.0.21"
-    id("com.gradleup.shadow") version "8.3.6"
+    kotlin("jvm") version "2.4.21"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 group = project.property("group") as String
@@ -28,8 +28,9 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.16")
 
     testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter") // includes junit-jupiter-params
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher") // Gradle 9 no longer provides it
     testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
@@ -58,6 +59,10 @@ tasks.shadowJar {
         attributes["Main-Class"] = "com.anjo.MainKt"
     }
     mergeServiceFiles()
+    // Shadow 9 drops duplicates (EXCLUDE) before transformers run; files they merge must keep every copy
+    filesMatching(listOf("META-INF/services/**", "META-INF/*.kotlin_module")) {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 }
 
 // shadowJar writes the same file name, the thin jar would clash with it
@@ -67,7 +72,7 @@ tasks.jar {
 
 // Release bundle matching the documented Usage flow exactly: fat jar +
 // example config + the run/kill/install scripts, flat, ready to unzip and run.
-val releaseZip by tasks.registering(Zip::class) {
+val releaseZip = tasks.register<Zip>("releaseZip") {
     archiveBaseName.set(rootProject.name)
     archiveVersion.set(version.toString())
     destinationDirectory.set(layout.buildDirectory.dir("distributions"))
