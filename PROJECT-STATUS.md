@@ -17,6 +17,10 @@
 - All dependencies updated (2026-10-27): Gradle 9.8.2, Kotlin 2.4.21, Shadow 9.6.1, JUnit 6.1.3,
   Testcontainers 2.0.5 (new module artifacts/packages), kotest 6, all JDBC drivers, coroutines 1.11,
   kotlin-logging 8, checkout v7 / setup-java v6.
+- JDBC runs on `Dispatchers.IO` (was the coroutine timer thread), retry backoff uses `delay()`,
+  cancellation propagates.
+- `querytimeout` property (seconds, `0` = no limit): default 3600 for network DBs, SQLite keeps
+  driver default unless set.
 
 ## Decisions
 - Config file is trusted input: statement check is a scope guard, not injection filtering.
@@ -24,6 +28,10 @@
 - Coroutines/Flow loop kept (virtual-time test in `SchedulerFlowServiceKtTest`).
 - Shadow 9 needs `DuplicatesStrategy.INCLUDE` for `META-INF/services/**` (default EXCLUDE drops
   JDBC driver entries before merging); the CI smoke test guards it.
+- No parallel/overlapping runs: sequential runs prevent two writes on the same table colliding.
+  Coroutine concurrency only pays off with multiple jobs or databases per process.
+- Query timeout via JDBC `setQueryTimeout`, not `withTimeout`: blocking JDBC ignores coroutine
+  cancellation. sqlite-jdbc maps it to `busy_timeout` (lock wait only).
 
 ## Next steps
 - Merge to main to publish v1.1.0 (old v1.0.1 release jar is broken).
