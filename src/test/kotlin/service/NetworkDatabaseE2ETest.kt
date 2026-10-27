@@ -5,13 +5,13 @@ import com.anjo.service.DriverManagerConnectionProvider
 import com.anjo.service.executeOperation
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import org.testcontainers.containers.MSSQLServerContainer
-import org.testcontainers.containers.MariaDBContainer
-import org.testcontainers.containers.MySQLContainer
-import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.mariadb.MariaDBContainer
+import org.testcontainers.mssqlserver.MSSQLServerContainer
+import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.oracle.OracleContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 @Testcontainers
 class NetworkDatabaseE2ETest {
@@ -19,19 +19,19 @@ class NetworkDatabaseE2ETest {
     companion object {
         @Container
         @JvmStatic
-        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16-alpine")
+        val postgres: PostgreSQLContainer = PostgreSQLContainer("postgres:16-alpine")
 
         @Container
         @JvmStatic
-        val mysql: MySQLContainer<*> = MySQLContainer("mysql:8.4")
+        val mysql: MySQLContainer = MySQLContainer("mysql:8.4")
 
         @Container
         @JvmStatic
-        val mariadb: MariaDBContainer<*> = MariaDBContainer("mariadb:11")
+        val mariadb: MariaDBContainer = MariaDBContainer("mariadb:11")
 
         @Container
         @JvmStatic
-        val mssql: MSSQLServerContainer<*> = MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest").acceptLicense()
+        val mssql: MSSQLServerContainer = MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest").acceptLicense()
 
         @Container
         @JvmStatic

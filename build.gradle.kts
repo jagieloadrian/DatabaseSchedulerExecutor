@@ -31,17 +31,18 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter") // includes junit-jupiter-params
     testRuntimeOnly("org.junit.platform:junit-platform-launcher") // Gradle 9 no longer provides it
-    testImplementation("io.mockk:mockk:1.13.16")
-    testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
+    testImplementation("io.mockk:mockk:1.14.11")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:6.2.6")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 
     //testcontainers (E2E against real Postgres/MySQL/MariaDB/MSSQL/Oracle)
-    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
-    testImplementation("org.testcontainers:postgresql:1.21.4")
-    testImplementation("org.testcontainers:mysql:1.21.4")
-    testImplementation("org.testcontainers:mariadb:1.21.4")
-    testImplementation("org.testcontainers:mssqlserver:1.21.4")
-    testImplementation("org.testcontainers:oracle-free:1.21.4")
+    testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.5"))
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
+    testImplementation("org.testcontainers:testcontainers-mysql")
+    testImplementation("org.testcontainers:testcontainers-mariadb")
+    testImplementation("org.testcontainers:testcontainers-mssqlserver")
+    testImplementation("org.testcontainers:testcontainers-oracle-free")
 }
 
 tasks.test {
