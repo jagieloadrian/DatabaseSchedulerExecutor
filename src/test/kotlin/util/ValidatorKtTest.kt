@@ -2,7 +2,7 @@ package util
 
 import com.anjo.config.PropertiesConfig
 import com.anjo.util.validateArgs
-import com.anjo.util.validatePath
+import com.anjo.util.validateConfigPath
 import com.anjo.util.validateProperties
 import com.anjo.util.validateSql
 import io.kotest.assertions.throwables.shouldThrow
@@ -26,9 +26,9 @@ class ValidatorKtTest {
 
     @ParameterizedTest
     @MethodSource("providePathAndExpected")
-    fun `given path when validatePath then return expected value`(path: String, expected: Boolean) {
+    fun `given path when validateConfigPath then return expected value`(path: String, expected: Boolean) {
         //when
-        val actual = validatePath(path)
+        val actual = validateConfigPath(path)
 
         //then
         actual shouldBe expected
@@ -67,16 +67,12 @@ class ValidatorKtTest {
     }
 
     @Test
-    fun `given network config missing host when validateProperties then throw exception`() {
+    fun `given valid sqlite config when validateProperties then does not throw`() {
         //given
-        val props = PropertiesConfig("src/test/resources/invalidNetworkApp.properties")
-        val expectedMessage = "DB path or statement must be properly specified"
+        val props = PropertiesConfig("src/test/resources/app.properties")
 
-        //when
-        val exception = shouldThrow<IllegalArgumentException> { validateProperties(props) }
-
-        //then
-        exception.message shouldBe expectedMessage
+        //when + then
+        validateProperties(props)
     }
 
     companion object {
@@ -86,7 +82,8 @@ class ValidatorKtTest {
                     Arguments.of("src/test/resources/app.properties", true),
                     Arguments.of("invalidpath", false),
                     Arguments.of("", false),
-                    Arguments.of("src/test/resources/invalidfile.txt", false)
+                    Arguments.of("src/test/resources/invalidfile.txt", false),
+                    Arguments.of("src/test/resources/testDb.db", false)
             )
         }
 
@@ -109,11 +106,17 @@ class ValidatorKtTest {
                     Arguments.of("SELECT 1; DELETE FROM users", false),
                     Arguments.of("SELECT * FROM people; DROP TABLE people;", false),
 
-                    Arguments.of("SELECT * FROM people WHERE name = 'x' OR 1=1--", false),
-                    Arguments.of("SELECT * FROM people WHERE name = 'x' OR '1'='1'", false),
+                    Arguments.of("DROP TABLE people", false),
+                    Arguments.of("TRUNCATE TABLE people", false),
+                    Arguments.of("ALTER TABLE people ADD age INT", false),
+                    Arguments.of("CREATE TABLE t(id INT)", false),
 
-                    Arguments.of("SELECT * FROM people WHERE id = 1 # comment", false),
-                    Arguments.of("SELECT * FROM people /* comment */ WHERE id = 1", false),
+                    Arguments.of("INSERT INTO people VALUES (2, 'Bob')", true),
+                    Arguments.of("DELETE FROM people WHERE id = 2", true),
+                    Arguments.of("UPDATE people SET dropped_at = NULL WHERE id = 1", true),
+                    Arguments.of("SELECT * FROM people WHERE name = '#1'", true),
+                    Arguments.of("SELECT * FROM people /* comment */ WHERE id = 1", true),
+                    Arguments.of("SELECT * FROM people WHERE id = 1 -- comment", true),
 
                     Arguments.of("SELECT * FROM people WHERE status = 'A' OR status = 'B'", true)
             )

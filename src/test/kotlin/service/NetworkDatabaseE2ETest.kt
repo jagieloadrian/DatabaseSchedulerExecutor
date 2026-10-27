@@ -3,15 +3,20 @@ package service
 import com.anjo.service.DbType
 import com.anjo.service.DriverManagerConnectionProvider
 import com.anjo.service.executeOperation
+import com.anjo.service.runSqlStatement
+import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import org.testcontainers.containers.MSSQLServerContainer
-import org.testcontainers.containers.MariaDBContainer
-import org.testcontainers.containers.MySQLContainer
-import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.mariadb.MariaDBContainer
+import org.testcontainers.mssqlserver.MSSQLServerContainer
+import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.oracle.OracleContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 @Testcontainers
 class NetworkDatabaseE2ETest {
@@ -19,19 +24,19 @@ class NetworkDatabaseE2ETest {
     companion object {
         @Container
         @JvmStatic
-        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16-alpine")
+        val postgres: PostgreSQLContainer = PostgreSQLContainer("postgres:16-alpine")
 
         @Container
         @JvmStatic
-        val mysql: MySQLContainer<*> = MySQLContainer("mysql:8.4")
+        val mysql: MySQLContainer = MySQLContainer("mysql:8.4")
 
         @Container
         @JvmStatic
-        val mariadb: MariaDBContainer<*> = MariaDBContainer("mariadb:11")
+        val mariadb: MariaDBContainer = MariaDBContainer("mariadb:11")
 
         @Container
         @JvmStatic
-        val mssql: MSSQLServerContainer<*> = MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest").acceptLicense()
+        val mssql: MSSQLServerContainer = MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest").acceptLicense()
 
         @Container
         @JvmStatic
@@ -52,7 +57,7 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     @Test
@@ -69,7 +74,7 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     @Test
@@ -86,14 +91,12 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     @Test
     fun `given real mssql container when connect via DbType MSSQL and select then returns row count`() {
         //given
-        // MSSQLServerContainer.getDatabaseName() is unsupported by testcontainers - "master" is the
-        // default DB the container exposes, no custom database creation needed for this test.
         val port = mssql.getMappedPort(1433)
         val database = "master"
         seedPeopleTable(mssql.host, port, database, mssql.username, mssql.password, "mssql")
@@ -107,7 +110,7 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     @Test
@@ -125,7 +128,21 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
+    }
+
+    @Test
+    fun `given query longer than querytimeout when runSqlStatement then statement is cancelled`() {
+        //given
+        val provider = DriverManagerConnectionProvider.network(
+            DbType.POSTGRESQL, postgres.host, postgres.firstMappedPort, postgres.databaseName, postgres.username, postgres.password
+        )
+
+        //when
+        val elapsed = measureTime { runBlocking { runSqlStatement("SELECT pg_sleep(10)", provider, 1) } }
+
+        //then
+        elapsed shouldBeLessThan 5.seconds
     }
 
     private fun seedPeopleTable(host: String, port: Int, database: String, user: String, password: String, vendor: String) {

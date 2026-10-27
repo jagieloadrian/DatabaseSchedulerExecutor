@@ -30,7 +30,7 @@ Kotlin's application to schedule and run background task to execute SQL statemen
 It's application which execute SQL statement on specific time defined by CRON expression. 
 
 ## Technologies Used
-- Kotlin - version 2.0.21
+- Kotlin - version 2.4.21
 - Kotlin Coroutines
 - JDBC (SQLite, PostgreSQL, MySQL, MariaDB, SQL Server, Oracle)
 - JSQLParser
@@ -38,10 +38,11 @@ It's application which execute SQL statement on specific time defined by CRON ex
 
 ## Features
 List the ready features here:
-- run SQL statement on specific time
+- run SQL statement on specific time (CRON ticks only — nothing runs immediately at startup or restart)
 - no need to rebuild app, just restart to load properties with new information
 - in case of limits by cron-utils it has to be 5 chars CRON expression with spaces (like in `app.properties` file, cause `CronType.Unix`). See [cron-utils docs](http://cron-parser.com/)
-- program accept one SQL statement due to avoid SQL injection
+- program accepts exactly one `SELECT`/`INSERT`/`UPDATE`/`DELETE` statement; anything else (`DROP`, `ALTER`,
+  `TRUNCATE`, `CREATE`, multiple statements) is rejected at startup
 - supports SQLite (local file) or a network database (PostgreSQL, MySQL, MariaDB, SQL Server, Oracle)
 
 ## Prerequisites
@@ -53,7 +54,7 @@ List the ready features here:
 - set in args `--config pathToConfig.properties`
 - run `Main.kt`
 2. Build manual:
-- `gradle clean build :jar` to build fatJar, 
+- `./gradlew assemble` to build the fat jar (`build/libs`) and the release zip (`build/distributions`)
 - copy properties from `src/main/resources/app.properties` to `build/libs` and adjust to your needs
 - run command `java -jar DatabaseScheduleExecutor-*.jar --config $pathToConfig.properties` (jar name includes the build version, `*` picks it up regardless)
 3. Build code and run by sh: 
@@ -71,10 +72,17 @@ statement=select * from people;
 cron=* * * * *
 ```
 
+Optional for every database type:
+- `querytimeout` — max seconds a single run may take (`0` = no limit). A statement exceeding it
+  (e.g. stuck waiting on a lock) is cancelled and logged as a failed run, so it can't block later
+  CRON ticks. Default `3600` for network databases. SQLite: the driver applies it only as the
+  max wait for a lock (it can't cancel a running query); unset keeps the driver default (3s)
+
 ## Database configuration
 Two modes, picked by the `dbtype` property.
 
-**SQLite (default)** — leave `dbtype` unset, use `filepath` as shown above. Nothing else changes.
+**SQLite (default)** — leave `dbtype` unset, use `filepath` as shown above. Any extension works
+(`.db`, `.sqlite`, ...), but the file must exist. The config file itself must be a `.properties` file.
 
 **Network database** — set `dbtype` to one of `postgresql`, `mysql`, `mariadb`, `mssql`, `oracle`,
 plus connection details:
@@ -96,7 +104,8 @@ cron=* * * * *
 - `mssql`: connects with `trustServerCertificate=true` by default (channel still encrypted, skips
   CA validation) — works out of the box against internal SQL Server instances without their own CA
 - Connection failures retry automatically (3 attempts, exponential backoff: 1s/2s); if still
-  failing, that run is skipped and logged — the next CRON tick tries again
+  failing, that run is skipped and logged — the next CRON tick tries again. SQL errors are
+  logged and skipped the same way
 - If using plaintext `dbpassword`, restrict the file's permissions (`chmod 600 app.properties`
   on Linux) since it's stored as-is. `install-service.sh`/`.ps1` do this automatically.
 
@@ -138,12 +147,14 @@ Both run the jar directly as root/SYSTEM (no dedicated service account) and don'
 - run command `sh runScheduler.sh`
 
 ## Logging
-Logging goes through `slf4j-simple`, written to stdout/stderr by default.
+Logging goes through `slf4j-simple`, written to stdout/stderr with timestamps
+(`src/main/resources/simplelogger.properties`).
 When started via `runScheduler.sh`, output is redirected to `output.log` in the
-run folder (`> output.log 2>&1`).
+run folder (`> output.log 2>&1`). That file is not rotated — for long-running setups use
+the service install (journald rotates) or a `logrotate` rule with `copytruncate`.
 
 ## Download
-- Link: [DBSchedulerExecutor.zip](https://github.com/jagieloadrian/DatabaseSchedulerExecutor/releases/latest)
+- Link: [DBSchedulerExecutor.zip](https://github.com/jagieloadrian/DtatabaseSchedulerExecutor/releases/latest)
 
 ## Room for Improvement
 - Connection pooling, if the app ever needs to handle concurrent statements instead of one per run

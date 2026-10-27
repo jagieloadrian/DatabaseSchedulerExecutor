@@ -1,8 +1,4 @@
 #!/usr/bin/env bats
-# Regression tests for scripts/runScheduler.sh + killScheduler.sh.
-# Fakes `java` (a sleeping process) so these stay fast/deterministic and
-# don't need a real JVM/DB — the real jar was already E2E-tested manually
-# for Stage 2/3 (see .specs/stage-2-version-drift.md, stage-3-process-naming.md).
 
 SCRIPT_SRC_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
 
@@ -16,7 +12,6 @@ statement=select 1;
 cron=* * * * *
 EOF
 
-  # fake java: just sleeps, so runScheduler.sh has a real backgroundable process
   cat > "$TEST_DIR/java" <<'EOF'
 #!/bin/sh
 sleep 60
