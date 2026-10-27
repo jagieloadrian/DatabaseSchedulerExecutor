@@ -8,7 +8,7 @@ import com.anjo.service.calculateNextExecutionDuration
 import com.anjo.service.runSchedulerFlow
 import com.anjo.service.runSqlStatement
 import com.anjo.util.validateArgs
-import com.anjo.util.validatePath
+import com.anjo.util.validateConfigPath
 import com.anjo.util.validateProperties
 
 suspend fun main(args: Array<String>) {
@@ -23,7 +23,7 @@ suspend fun main(args: Array<String>) {
 fun getConfigProperties(args: Array<String>): PropertiesConfig {
     val configPath =
         if (validateArgs(args)) args[1] else throw IllegalArgumentException("Invalid input config file path")
-    if (validatePath(configPath)) {
+    if (validateConfigPath(configPath)) {
         return PropertiesConfig(configPath)
     } else {
         throw IllegalArgumentException("Invalid input config file path")

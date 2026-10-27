@@ -17,7 +17,7 @@ fun validateArgs(args: Array<String>): Boolean {
     return args.isNotEmpty() && args.size == 2 && args[0] == "--config"
 }
 
-fun validatePath(path: String?): Boolean {
+fun validateConfigPath(path: String?): Boolean {
     if (path.isNullOrEmpty()) {
         logger.warn { "Provide empty path!" }
         return false
@@ -27,14 +27,11 @@ fun validatePath(path: String?): Boolean {
         logger.warn { "File on path: $path doesn't exist" }
         return false
     }
-    return when (file.extension) {
-        "properties" -> true
-        "db"         -> true
-        else         -> {
-            logger.warn { "File on path: $path has unexpected extension: ${file.extension}" }
-            false
-        }
+    if (file.extension != "properties") {
+        logger.warn { "File on path: $path has unexpected extension: ${file.extension}" }
+        return false
     }
+    return true
 }
 
 fun validateSql(sql: String?): Boolean {
@@ -60,25 +57,17 @@ fun validateSql(sql: String?): Boolean {
     }
 }
 
+// Network DB settings (host/database/dbuser) are checked where they are used, in buildConnectionProvider.
 fun validateProperties(configProps: PropertiesConfig) {
     val statement = validateSql(configProps.getStatement())
     val dbType = DbType.fromStringOrSqlite(configProps.getDbType())
-    val dbValid = if (dbType == DbType.SQLITE) {
-        validatePath(configProps.getFileDb())
-    } else {
-        validateNetworkDbConfig(configProps, dbType)
-    }
+    val dbValid = dbType != DbType.SQLITE || validateSqliteFile(configProps.getFileDb())
     require(dbValid and statement) { "DB path or statement must be properly specified" }
 }
 
-fun validateNetworkDbConfig(configProps: PropertiesConfig, dbType: DbType): Boolean {
-    val host = configProps.getHost()
-    val database = configProps.getDatabase()
-    val user = configProps.getDbUser()
-    return when {
-        host.isNullOrBlank()     -> { logger.warn { "Provide host for dbtype=$dbType" }; false }
-        database.isNullOrBlank() -> { logger.warn { "Provide database for dbtype=$dbType" }; false }
-        user.isNullOrBlank()     -> { logger.warn { "Provide dbuser (property or DB_USER env) for dbtype=$dbType" }; false }
-        else                     -> true
-    }
+// Any extension (.db, .sqlite, .sqlite3...), but the file must exist: SQLite would silently create an empty one.
+private fun validateSqliteFile(path: String): Boolean {
+    val exists = File(path).isFile
+    if (!exists) logger.warn { "SQLite file on path: $path doesn't exist" }
+    return exists
 }

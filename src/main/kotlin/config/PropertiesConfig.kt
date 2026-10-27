@@ -24,20 +24,25 @@ class PropertiesConfig(path: String) {
         return properties["cron"]?.toString() ?: throwException("cron")
     }
 
-    fun getDbType(): String? = properties["dbtype"]?.toString()
+    fun getDbType(): String? = optional("dbtype")
 
-    fun getHost(): String? = properties["host"]?.toString()
+    fun getHost(): String? = optional("host")
 
     fun getPort(): Int? {
-        val raw = properties["port"]?.toString() ?: return null
+        val raw = optional("port") ?: return null
         return raw.toIntOrNull() ?: throw IllegalArgumentException("Property 'port' must be a number, got: $raw")
     }
 
-    fun getDatabase(): String? = properties["database"]?.toString()
+    fun getDatabase(): String? = optional("database")
 
-    fun getDbUser(): String? = System.getenv("DB_USER") ?: properties["dbuser"]?.toString()
+    fun getDbUser(): String? = env("DB_USER") ?: optional("dbuser")
 
-    fun getDbPassword(): String? = System.getenv("DB_PASSWORD") ?: properties["dbpassword"]?.toString()
+    fun getDbPassword(): String? = env("DB_PASSWORD") ?: optional("dbpassword")
+
+    // blank (`host=`) counts as missing
+    private fun optional(property: String): String? = properties[property]?.toString()?.takeIf { it.isNotBlank() }
+
+    private fun env(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }
 
     private fun throwException(property: String): Nothing {
         throw IllegalArgumentException("Cannot read property '$property'")
