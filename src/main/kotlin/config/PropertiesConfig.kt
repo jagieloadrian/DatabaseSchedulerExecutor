@@ -35,7 +35,6 @@ class PropertiesConfig(path: String) {
 
     fun getDatabase(): String? = optional("database")
 
-    // 0 = no limit (JDBC Statement.setQueryTimeout semantics)
     fun getQueryTimeoutSeconds(): Int? {
         val raw = optional("querytimeout") ?: return null
         return raw.toIntOrNull()?.takeIf { it >= 0 }
@@ -46,7 +45,6 @@ class PropertiesConfig(path: String) {
 
     fun getDbPassword(): String? = env("DB_PASSWORD") ?: optional("dbpassword")
 
-    // blank (`host=`) counts as missing
     private fun optional(property: String): String? = properties[property]?.toString()?.takeIf { it.isNotBlank() }
 
     private fun env(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }

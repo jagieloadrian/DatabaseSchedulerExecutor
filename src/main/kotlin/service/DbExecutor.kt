@@ -16,7 +16,6 @@ private const val INITIAL_BACKOFF_MS = 1000L
 
 suspend fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionProvider, queryTimeoutSeconds: Int?) {
     try {
-        // JDBC blocks: keep it off the thread delay() resumes on (the coroutine timer thread)
         withContext(Dispatchers.IO) {
             connectWithRetry(connectionProvider).use { connection ->
                 connection.createStatement().use { statement ->
@@ -28,10 +27,8 @@ suspend fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionP
             }
         }
     } catch (e: CancellationException) {
-        throw e // shutdown/cancel must propagate, not be logged as a failed run
+        throw e
     } catch (e: Exception) {
-        // Any failure (connection retries exhausted, SQL error) must not crash the scheduler loop —
-        // just skip this tick, the next CRON tick will try again.
         logger.error(e) { "Failed to run scheduled SQL statement, will retry on next tick." }
     }
 }
@@ -51,8 +48,6 @@ private suspend fun connectWithRetry(connectionProvider: DatabaseConnectionProvi
     error("unreachable")
 }
 
-// Statement type is limited to SELECT/INSERT/UPDATE/DELETE by validateSql. Runs in auto-commit:
-// a single statement is its own transaction. Returns rows read (SELECT) or rows affected.
 fun executeOperation(query: String, statement: Statement): Int {
     if (!statement.execute(query)) return statement.updateCount
     return statement.resultSet.use { resultSet ->

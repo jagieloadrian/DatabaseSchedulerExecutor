@@ -11,7 +11,6 @@ import com.anjo.util.validateArgs
 import com.anjo.util.validateConfigPath
 import com.anjo.util.validateProperties
 
-// Long enough for typical batch statements, short enough that a hung one (e.g. lock wait) can't block every later tick
 private const val DEFAULT_QUERY_TIMEOUT_SECONDS = 3600
 
 suspend fun main(args: Array<String>) {
@@ -50,8 +49,6 @@ fun buildConnectionProvider(configProps: PropertiesConfig): DatabaseConnectionPr
     }
 }
 
-// SQLite maps queryTimeout to its lock-wait (busy) timeout and can't cancel a running query,
-// so without an explicit querytimeout it keeps the driver default (3s lock wait). null = driver default.
 fun resolveQueryTimeoutSeconds(configProps: PropertiesConfig): Int? =
     configProps.getQueryTimeoutSeconds()
         ?: DEFAULT_QUERY_TIMEOUT_SECONDS.takeUnless { DbType.fromStringOrSqlite(configProps.getDbType()) == DbType.SQLITE }

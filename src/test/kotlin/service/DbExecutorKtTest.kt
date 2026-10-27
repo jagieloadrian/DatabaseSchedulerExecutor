@@ -72,7 +72,7 @@ class DbExecutorKtTest {
         val mockConnectionProvider = mockk<DatabaseConnectionProvider>()
         every { mockConnectionProvider.getConnection() } throws SQLException("connect failed")
 
-        //when/then - must not propagate, scheduler loop has to survive
+        //when/then
         runSqlStatement(sql, mockConnectionProvider, 30)
 
         verify(exactly = 3) { mockConnectionProvider.getConnection() }
@@ -146,7 +146,7 @@ class DbExecutorKtTest {
         every { mockConnection.createStatement() } returns mockStatement
         every { mockStatement.execute(sql) } throws SQLException("no such table")
 
-        //when/then - must not propagate, scheduler loop has to survive
+        //when/then
         runSqlStatement(sql, mockConnectionProvider, 30)
 
         verify { mockStatement.close() }
@@ -170,7 +170,7 @@ class DbExecutorKtTest {
         //when
         runSqlStatement(sql, mockConnectionProvider, 30)
 
-        //then - not the caller's thread (runTest's "Test worker")
+        //then
         jdbcThread shouldStartWith "DefaultDispatcher-worker"
     }
 
@@ -183,7 +183,7 @@ class DbExecutorKtTest {
         every { mockConnectionProvider.getConnection() } throws SQLException("connect failed")
         var continuedAfterCancel = false
 
-        //when - cancelled during the 1s retry backoff
+        //when
         shouldThrow<TimeoutCancellationException> {
             runBlocking {
                 withTimeout(200) {
@@ -193,7 +193,7 @@ class DbExecutorKtTest {
             }
         }
 
-        //then - not swallowed as a failed run: the caller stops right there
+        //then
         continuedAfterCancel shouldBe false
         verify(exactly = 1) { mockConnectionProvider.getConnection() }
     }

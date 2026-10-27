@@ -1,7 +1,4 @@
 #!/bin/bash
-# Installs DatabaseSchedulerExecutor as a systemd service.
-# Run from the folder containing the built jar + app.properties (as root/sudo).
-# Uninstall: systemctl disable --now db-scheduler && rm /etc/systemd/system/db-scheduler.service
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -42,7 +39,6 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 EOF
-# ponytail: runs as root (no dedicated User=), add one if hardening needed
 
 systemctl daemon-reload
 systemctl enable --now db-scheduler

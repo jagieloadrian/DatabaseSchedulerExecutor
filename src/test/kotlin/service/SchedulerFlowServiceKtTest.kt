@@ -23,11 +23,11 @@ class SchedulerFlowServiceKtTest {
             runSchedulerFlow({ 100.milliseconds }) { calls++;println("Executed $calls times") }
         }
 
-        //then - nothing runs before the first tick
+        //then
         advanceTimeBy(50.milliseconds)
         calls shouldBe 0
 
-        //then - one run per tick (100, 200, 300, 400ms)
+        //then
         advanceTimeBy(450.milliseconds)
         calls shouldBe 4
         job.cancel()

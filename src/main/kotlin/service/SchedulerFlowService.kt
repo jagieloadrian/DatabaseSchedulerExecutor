@@ -11,8 +11,6 @@ suspend fun runSchedulerFlow(calcDuration: () -> Duration, dbExecutor: suspend (
     var count = 0
 
     val execFlow = flow {
-        // Wait first: the statement runs on CRON ticks only, never on startup/restart.
-        // Duration is computed right before waiting, so execution time doesn't delay the next tick.
         while (true) {
             delay(calcDuration())
             emit(dbExecutor())

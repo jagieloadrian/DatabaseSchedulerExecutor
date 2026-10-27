@@ -97,8 +97,6 @@ class NetworkDatabaseE2ETest {
     @Test
     fun `given real mssql container when connect via DbType MSSQL and select then returns row count`() {
         //given
-        // MSSQLServerContainer.getDatabaseName() is unsupported by testcontainers - "master" is the
-        // default DB the container exposes, no custom database creation needed for this test.
         val port = mssql.getMappedPort(1433)
         val database = "master"
         seedPeopleTable(mssql.host, port, database, mssql.username, mssql.password, "mssql")
@@ -140,7 +138,7 @@ class NetworkDatabaseE2ETest {
             DbType.POSTGRESQL, postgres.host, postgres.firstMappedPort, postgres.databaseName, postgres.username, postgres.password
         )
 
-        //when - 10s query, 1s timeout; the failure is logged, not thrown
+        //when
         val elapsed = measureTime { runBlocking { runSqlStatement("SELECT pg_sleep(10)", provider, 1) } }
 
         //then

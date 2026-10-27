@@ -24,8 +24,6 @@ jobs:
       - name: Build project
         run: ./gradlew build
 
-      # Guards the release jar itself: it must start (reach arg validation)
-      # and register every JDBC driver (one per DbType, merged service files).
       - name: Smoke test release jar
         run: |
           JAR=$(ls build/libs/DatabaseScheduleExecutor-*.jar)
@@ -108,8 +106,6 @@ jobs:
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      # Push to main without a version bump keeps main green instead of
-      # failing on the already existing tag.
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:

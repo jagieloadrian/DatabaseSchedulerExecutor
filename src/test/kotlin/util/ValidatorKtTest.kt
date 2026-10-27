@@ -113,7 +113,6 @@ class ValidatorKtTest {
 
                     Arguments.of("INSERT INTO people VALUES (2, 'Bob')", true),
                     Arguments.of("DELETE FROM people WHERE id = 2", true),
-                    // regex blacklist used to reject these valid statements
                     Arguments.of("UPDATE people SET dropped_at = NULL WHERE id = 1", true),
                     Arguments.of("SELECT * FROM people WHERE name = '#1'", true),
                     Arguments.of("SELECT * FROM people /* comment */ WHERE id = 1", true),

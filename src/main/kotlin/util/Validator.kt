@@ -42,8 +42,6 @@ fun validateSql(sql: String?): Boolean {
         logger.error(e) { "Error parsing sql" }
         return false
     }
-    // Scope guard, not injection filtering: the config file is trusted (its author holds the DB
-    // credentials anyway). Allow exactly one DML statement, so DROP/ALTER/TRUNCATE/stacked queries fail.
     return when (val statement = statements.singleOrNull()) {
         is Select, is Insert, is Update, is Delete -> true
         null -> {
@@ -57,7 +55,6 @@ fun validateSql(sql: String?): Boolean {
     }
 }
 
-// Network DB settings (host/database/dbuser) are checked where they are used, in buildConnectionProvider.
 fun validateProperties(configProps: PropertiesConfig) {
     val statement = validateSql(configProps.getStatement())
     val dbType = DbType.fromStringOrSqlite(configProps.getDbType())
@@ -65,7 +62,6 @@ fun validateProperties(configProps: PropertiesConfig) {
     require(dbValid and statement) { "DB path or statement must be properly specified" }
 }
 
-// Any extension (.db, .sqlite, .sqlite3...), but the file must exist: SQLite would silently create an empty one.
 private fun validateSqliteFile(path: String): Boolean {
     val exists = File(path).isFile
     if (!exists) logger.warn { "SQLite file on path: $path doesn't exist" }

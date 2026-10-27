@@ -1,6 +1,3 @@
-# Installs DatabaseSchedulerExecutor as a Windows scheduled task (runs at startup as SYSTEM).
-# Run from the folder containing the built jar + app.properties, as Administrator.
-# Uninstall: schtasks /Delete /TN DatabaseSchedulerExecutor /F
 param(
     [string]$InstallDir = "$env:ProgramFiles\DatabaseSchedulerExecutor"
 )
@@ -36,4 +33,3 @@ schtasks /Create /TN "DatabaseSchedulerExecutor" /TR $Command /SC ONSTART /RU SY
 schtasks /Run /TN "DatabaseSchedulerExecutor" | Out-Null
 
 Write-Host "installed to $InstallDir, status: schtasks /Query /TN DatabaseSchedulerExecutor"
-# ponytail: runs as SYSTEM (no dedicated service account), add one if hardening needed
