@@ -3,7 +3,10 @@ package service
 import com.anjo.service.DbType
 import com.anjo.service.DriverManagerConnectionProvider
 import com.anjo.service.executeOperation
+import com.anjo.service.runSqlStatement
+import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -12,6 +15,8 @@ import org.testcontainers.mssqlserver.MSSQLServerContainer
 import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.oracle.OracleContainer
 import org.testcontainers.postgresql.PostgreSQLContainer
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 @Testcontainers
 class NetworkDatabaseE2ETest {
@@ -126,6 +131,20 @@ class NetworkDatabaseE2ETest {
 
         //then
         result shouldBe 1
+    }
+
+    @Test
+    fun `given query longer than querytimeout when runSqlStatement then statement is cancelled`() {
+        //given
+        val provider = DriverManagerConnectionProvider.network(
+            DbType.POSTGRESQL, postgres.host, postgres.firstMappedPort, postgres.databaseName, postgres.username, postgres.password
+        )
+
+        //when - 10s query, 1s timeout; the failure is logged, not thrown
+        val elapsed = measureTime { runBlocking { runSqlStatement("SELECT pg_sleep(10)", provider, 1) } }
+
+        //then
+        elapsed shouldBeLessThan 5.seconds
     }
 
     private fun seedPeopleTable(host: String, port: Int, database: String, user: String, password: String, vendor: String) {

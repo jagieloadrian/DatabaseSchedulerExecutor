@@ -35,6 +35,13 @@ class PropertiesConfig(path: String) {
 
     fun getDatabase(): String? = optional("database")
 
+    // 0 = no limit (JDBC Statement.setQueryTimeout semantics)
+    fun getQueryTimeoutSeconds(): Int? {
+        val raw = optional("querytimeout") ?: return null
+        return raw.toIntOrNull()?.takeIf { it >= 0 }
+            ?: throw IllegalArgumentException("Property 'querytimeout' must be a number of seconds >= 0, got: $raw")
+    }
+
     fun getDbUser(): String? = env("DB_USER") ?: optional("dbuser")
 
     fun getDbPassword(): String? = env("DB_PASSWORD") ?: optional("dbpassword")

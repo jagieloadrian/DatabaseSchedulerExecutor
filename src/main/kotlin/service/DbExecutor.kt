@@ -14,12 +14,13 @@ private val logger = KotlinLogging.logger {}
 private const val MAX_CONNECTION_ATTEMPTS = 3
 private const val INITIAL_BACKOFF_MS = 1000L
 
-suspend fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionProvider) {
+suspend fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionProvider, queryTimeoutSeconds: Int?) {
     try {
         // JDBC blocks: keep it off the thread delay() resumes on (the coroutine timer thread)
         withContext(Dispatchers.IO) {
             connectWithRetry(connectionProvider).use { connection ->
                 connection.createStatement().use { statement ->
+                    queryTimeoutSeconds?.let { statement.queryTimeout = it }
                     logger.info { "Executing SQL: $sql" }
                     val rows = executeOperation(sql, statement)
                     logger.info { "Successfully executed, rows: $rows" }

@@ -72,6 +72,12 @@ statement=select * from people;
 cron=* * * * *
 ```
 
+Optional for every database type:
+- `querytimeout` — max seconds a single run may take (`0` = no limit). A statement exceeding it
+  (e.g. stuck waiting on a lock) is cancelled and logged as a failed run, so it can't block later
+  CRON ticks. Default `3600` for network databases. SQLite: the driver applies it only as the
+  max wait for a lock (it can't cancel a running query); unset keeps the driver default (3s)
+
 ## Database configuration
 Two modes, picked by the `dbtype` property.
 

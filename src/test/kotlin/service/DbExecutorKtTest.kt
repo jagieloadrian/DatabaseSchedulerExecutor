@@ -34,11 +34,12 @@ class DbExecutorKtTest {
         every { mockConnection.createStatement() } returns mockStatement
 
         //when
-        runSqlStatement(sql, mockConnectionProvider)
+        runSqlStatement(sql, mockConnectionProvider, 30)
 
         //then
         verify { mockConnectionProvider.getConnection() }
         verify { mockConnection.createStatement() }
+        verify { mockStatement.queryTimeout = 30 }
         verify { mockStatement.execute(sql) }
         verify { mockStatement.close() }
     }
@@ -56,7 +57,7 @@ class DbExecutorKtTest {
         every { mockConnection.createStatement() } returns mockStatement
 
         //when
-        runSqlStatement(sql, mockConnectionProvider)
+        runSqlStatement(sql, mockConnectionProvider, 30)
 
         //then
         verify(exactly = 2) { mockConnectionProvider.getConnection() }
@@ -72,7 +73,7 @@ class DbExecutorKtTest {
         every { mockConnectionProvider.getConnection() } throws SQLException("connect failed")
 
         //when/then - must not propagate, scheduler loop has to survive
-        runSqlStatement(sql, mockConnectionProvider)
+        runSqlStatement(sql, mockConnectionProvider, 30)
 
         verify(exactly = 3) { mockConnectionProvider.getConnection() }
     }
@@ -113,6 +114,26 @@ class DbExecutorKtTest {
     }
 
     @Test
+    fun `given no query timeout when run dbExecutor then driver default is kept`() = runTest {
+        //given
+        val sql = "select * from users;"
+
+        val mockConnectionProvider = mockk<DatabaseConnectionProvider>()
+        val mockConnection = mockk<Connection>(relaxed = true)
+        val mockStatement = mockk<Statement>(relaxed = true)
+
+        every { mockConnectionProvider.getConnection() } returns mockConnection
+        every { mockConnection.createStatement() } returns mockStatement
+
+        //when
+        runSqlStatement(sql, mockConnectionProvider, null)
+
+        //then
+        verify(exactly = 0) { mockStatement.queryTimeout = any() }
+        verify { mockStatement.execute(sql) }
+    }
+
+    @Test
     fun `given sql error when run dbExecutor then logs and does not throw`() = runTest {
         //given
         val sql = "select * from missing_table;"
@@ -126,7 +147,7 @@ class DbExecutorKtTest {
         every { mockStatement.execute(sql) } throws SQLException("no such table")
 
         //when/then - must not propagate, scheduler loop has to survive
-        runSqlStatement(sql, mockConnectionProvider)
+        runSqlStatement(sql, mockConnectionProvider, 30)
 
         verify { mockStatement.close() }
         verify { mockConnection.close() }
@@ -147,7 +168,7 @@ class DbExecutorKtTest {
         }
 
         //when
-        runSqlStatement(sql, mockConnectionProvider)
+        runSqlStatement(sql, mockConnectionProvider, 30)
 
         //then - not the caller's thread (runTest's "Test worker")
         jdbcThread shouldStartWith "DefaultDispatcher-worker"
@@ -166,7 +187,7 @@ class DbExecutorKtTest {
         shouldThrow<TimeoutCancellationException> {
             runBlocking {
                 withTimeout(200) {
-                    runSqlStatement(sql, mockConnectionProvider)
+                    runSqlStatement(sql, mockConnectionProvider, 30)
                     continuedAfterCancel = true
                 }
             }

@@ -1,6 +1,7 @@
 import com.anjo.buildConnectionProvider
 import com.anjo.config.PropertiesConfig
 import com.anjo.getConfigProperties
+import com.anjo.resolveQueryTimeoutSeconds
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlin.io.path.createTempFile
@@ -61,5 +62,23 @@ class MainKtTest {
 
         //then
         exception.message shouldBe expectedMessage
+    }
+
+    @Test
+    fun `given network db without querytimeout when resolveQueryTimeoutSeconds then return default`() {
+        //given
+        val props = PropertiesConfig("src/test/resources/networkApp.properties")
+
+        //when + then
+        resolveQueryTimeoutSeconds(props) shouldBe 3600
+    }
+
+    @Test
+    fun `given sqlite without querytimeout when resolveQueryTimeoutSeconds then keep driver default`() {
+        //given
+        val props = PropertiesConfig("src/test/resources/app.properties")
+
+        //when + then
+        resolveQueryTimeoutSeconds(props) shouldBe null
     }
 }
