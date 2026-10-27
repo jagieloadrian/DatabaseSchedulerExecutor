@@ -52,7 +52,7 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     @Test
@@ -69,7 +69,7 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     @Test
@@ -86,7 +86,7 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     @Test
@@ -107,7 +107,7 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     @Test
@@ -125,7 +125,7 @@ class NetworkDatabaseE2ETest {
         }
 
         //then
-        result shouldBe "1"
+        result shouldBe 1
     }
 
     private fun seedPeopleTable(host: String, port: Int, database: String, user: String, password: String, vendor: String) {
