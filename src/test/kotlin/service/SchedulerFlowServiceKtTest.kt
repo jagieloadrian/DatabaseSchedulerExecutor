@@ -16,7 +16,6 @@ class SchedulerFlowServiceKtTest {
     fun `given functions when run scheduler then check properly runs`() = runTest {
         //given
         var calls = 0
-        val timeDuration = 5
         val testScope = this
 
         //when
@@ -24,9 +23,13 @@ class SchedulerFlowServiceKtTest {
             runSchedulerFlow({ 100.milliseconds }) { calls++;println("Executed $calls times") }
         }
 
-        advanceTimeBy(500.milliseconds)
-        //then
-        calls shouldBe timeDuration
+        //then - nothing runs before the first tick
+        advanceTimeBy(50.milliseconds)
+        calls shouldBe 0
+
+        //then - one run per tick (100, 200, 300, 400ms)
+        advanceTimeBy(450.milliseconds)
+        calls shouldBe 4
         job.cancel()
     }
 }
