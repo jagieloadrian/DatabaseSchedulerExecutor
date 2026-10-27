@@ -3,10 +3,16 @@ package service
 import com.anjo.service.DatabaseConnectionProvider
 import com.anjo.service.executeOperation
 import com.anjo.service.runSqlStatement
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
@@ -16,7 +22,7 @@ import kotlin.test.Test
 class DbExecutorKtTest {
 
     @Test
-    fun `given properly path and sql statement when run dbExecutor then check if increase result check`() {
+    fun `given properly path and sql statement when run dbExecutor then check if increase result check`() = runTest {
         //given
         val sql = "select * from users;"
 
@@ -38,7 +44,7 @@ class DbExecutorKtTest {
     }
 
     @Test
-    fun `given connection fails once when run dbExecutor then retries and succeeds`() {
+    fun `given connection fails once when run dbExecutor then retries and succeeds`() = runTest {
         //given
         val sql = "select * from users;"
 
@@ -58,7 +64,7 @@ class DbExecutorKtTest {
     }
 
     @Test
-    fun `given connection always fails when run dbExecutor then gives up without throwing`() {
+    fun `given connection always fails when run dbExecutor then gives up without throwing`() = runTest {
         //given
         val sql = "select * from users;"
 
@@ -107,7 +113,7 @@ class DbExecutorKtTest {
     }
 
     @Test
-    fun `given sql error when run dbExecutor then logs and does not throw`() {
+    fun `given sql error when run dbExecutor then logs and does not throw`() = runTest {
         //given
         val sql = "select * from missing_table;"
 
@@ -124,5 +130,50 @@ class DbExecutorKtTest {
 
         verify { mockStatement.close() }
         verify { mockConnection.close() }
+    }
+
+    @Test
+    fun `given run dbExecutor then jdbc runs on IO dispatcher thread`() = runTest {
+        //given
+        val sql = "select * from users;"
+        var jdbcThread = ""
+
+        val mockConnectionProvider = mockk<DatabaseConnectionProvider>()
+        val mockConnection = mockk<Connection>(relaxed = true)
+
+        every { mockConnectionProvider.getConnection() } answers {
+            jdbcThread = Thread.currentThread().name
+            mockConnection
+        }
+
+        //when
+        runSqlStatement(sql, mockConnectionProvider)
+
+        //then - not the caller's thread (runTest's "Test worker")
+        jdbcThread shouldStartWith "DefaultDispatcher-worker"
+    }
+
+    @Test
+    fun `given cancel during connection retry when run dbExecutor then cancellation propagates`() {
+        //given
+        val sql = "select * from users;"
+
+        val mockConnectionProvider = mockk<DatabaseConnectionProvider>()
+        every { mockConnectionProvider.getConnection() } throws SQLException("connect failed")
+        var continuedAfterCancel = false
+
+        //when - cancelled during the 1s retry backoff
+        shouldThrow<TimeoutCancellationException> {
+            runBlocking {
+                withTimeout(200) {
+                    runSqlStatement(sql, mockConnectionProvider)
+                    continuedAfterCancel = true
+                }
+            }
+        }
+
+        //then - not swallowed as a failed run: the caller stops right there
+        continuedAfterCancel shouldBe false
+        verify(exactly = 1) { mockConnectionProvider.getConnection() }
     }
 }

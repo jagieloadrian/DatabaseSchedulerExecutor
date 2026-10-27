@@ -1,24 +1,33 @@
 package com.anjo.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Statement
+import kotlin.coroutines.cancellation.CancellationException
 
 private val logger = KotlinLogging.logger {}
 
 private const val MAX_CONNECTION_ATTEMPTS = 3
 private const val INITIAL_BACKOFF_MS = 1000L
 
-fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionProvider) {
+suspend fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionProvider) {
     try {
-        connectWithRetry(connectionProvider).use { connection ->
-            connection.createStatement().use { statement ->
-                logger.info { "Executing SQL: $sql" }
-                val rows = executeOperation(sql, statement)
-                logger.info { "Successfully executed, rows: $rows" }
+        // JDBC blocks: keep it off the thread delay() resumes on (the coroutine timer thread)
+        withContext(Dispatchers.IO) {
+            connectWithRetry(connectionProvider).use { connection ->
+                connection.createStatement().use { statement ->
+                    logger.info { "Executing SQL: $sql" }
+                    val rows = executeOperation(sql, statement)
+                    logger.info { "Successfully executed, rows: $rows" }
+                }
             }
         }
+    } catch (e: CancellationException) {
+        throw e // shutdown/cancel must propagate, not be logged as a failed run
     } catch (e: Exception) {
         // Any failure (connection retries exhausted, SQL error) must not crash the scheduler loop —
         // just skip this tick, the next CRON tick will try again.
@@ -26,7 +35,7 @@ fun runSqlStatement(sql: String, connectionProvider: DatabaseConnectionProvider)
     }
 }
 
-private fun connectWithRetry(connectionProvider: DatabaseConnectionProvider): Connection {
+private suspend fun connectWithRetry(connectionProvider: DatabaseConnectionProvider): Connection {
     var backoffMs = INITIAL_BACKOFF_MS
     for (attempt in 1..MAX_CONNECTION_ATTEMPTS) {
         try {
@@ -34,7 +43,7 @@ private fun connectWithRetry(connectionProvider: DatabaseConnectionProvider): Co
         } catch (e: SQLException) {
             if (attempt == MAX_CONNECTION_ATTEMPTS) throw e
             logger.warn(e) { "Connection attempt $attempt/$MAX_CONNECTION_ATTEMPTS failed, retrying in ${backoffMs}ms..." }
-            Thread.sleep(backoffMs)
+            delay(backoffMs)
             backoffMs *= 2
         }
     }

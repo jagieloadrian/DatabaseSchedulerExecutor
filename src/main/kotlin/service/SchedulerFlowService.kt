@@ -7,7 +7,7 @@ import kotlin.time.Duration
 
 private val logger = KotlinLogging.logger {}
 
-suspend fun runSchedulerFlow(calcDuration: () -> Duration, dbExecutor: () -> Unit) {
+suspend fun runSchedulerFlow(calcDuration: () -> Duration, dbExecutor: suspend () -> Unit) {
     var count = 0
 
     val execFlow = flow {
