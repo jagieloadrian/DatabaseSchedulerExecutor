@@ -31,10 +31,11 @@ JAR_NAME="$(basename "$JAR")"
 cat > /etc/systemd/system/db-scheduler.service <<EOF
 [Unit]
 Description=DatabaseSchedulerExecutor
-After=network.target
+Wants=network-online.target
+After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/env java -jar $INSTALL_DIR/$JAR_NAME --config $INSTALL_DIR/app.properties
+ExecStart=/usr/bin/env java -jar "$INSTALL_DIR/$JAR_NAME" --config "$INSTALL_DIR/app.properties"
 WorkingDirectory=$INSTALL_DIR
 Restart=on-failure
 

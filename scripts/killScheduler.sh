@@ -1,4 +1,5 @@
-pidFile=$(pwd)/scheduler.pid
+#!/bin/sh
+pidFile="$(pwd)/scheduler.pid"
 
 if [ ! -f "$pidFile" ]; then
   echo "no scheduler.pid found, nothing to stop"
