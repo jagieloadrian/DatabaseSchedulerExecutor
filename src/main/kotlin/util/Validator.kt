@@ -5,6 +5,10 @@ import com.anjo.service.DbType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.sf.jsqlparser.JSQLParserException
 import net.sf.jsqlparser.parser.CCJSqlParserUtil
+import net.sf.jsqlparser.statement.delete.Delete
+import net.sf.jsqlparser.statement.insert.Insert
+import net.sf.jsqlparser.statement.select.Select
+import net.sf.jsqlparser.statement.update.Update
 import java.io.File
 
 private val logger = KotlinLogging.logger {}
@@ -34,15 +38,24 @@ fun validatePath(path: String?): Boolean {
 }
 
 fun validateSql(sql: String?): Boolean {
-    return if (sql.isNullOrEmpty()) {
-        false
-    } else {
-        try {
-            CCJSqlParserUtil.parse(sql)
-            return doesntContainSqlInjection(sql)
-        } catch (e: JSQLParserException) {
-            logger.error(e) { "Error parsing sql" }
-            return false
+    if (sql.isNullOrBlank()) return false
+    val statements = try {
+        CCJSqlParserUtil.parseStatements(sql)
+    } catch (e: JSQLParserException) {
+        logger.error(e) { "Error parsing sql" }
+        return false
+    }
+    // Scope guard, not injection filtering: the config file is trusted (its author holds the DB
+    // credentials anyway). Allow exactly one DML statement, so DROP/ALTER/TRUNCATE/stacked queries fail.
+    return when (val statement = statements.singleOrNull()) {
+        is Select, is Insert, is Update, is Delete -> true
+        null -> {
+            logger.error { "SQL must contain exactly one statement, got ${statements.size}" }
+            false
+        }
+        else -> {
+            logger.error { "Only SELECT/INSERT/UPDATE/DELETE allowed, got: ${statement::class.simpleName}" }
+            false
         }
     }
 }
@@ -67,38 +80,5 @@ fun validateNetworkDbConfig(configProps: PropertiesConfig, dbType: DbType): Bool
         database.isNullOrBlank() -> { logger.warn { "Provide database for dbtype=$dbType" }; false }
         user.isNullOrBlank()     -> { logger.warn { "Provide dbuser (property or DB_USER env) for dbtype=$dbType" }; false }
         else                     -> true
-    }
-}
-
-private fun doesntContainSqlInjection(sql: String): Boolean {
-    if (containsStackedStatements(sql)) {
-        logger.error { "SQ" +
-                "L contains more than one statement (stacked query)" }
-        return false
-    }
-    val patterns = listOf(
-            ".*--.*",
-            ".*#.*",
-            ".*/\\*.*\\*/.*",
-            ".*'\\s*OR\\s*('.*'|\\d+\\s*=\\s*\\d+).*",
-            ".*DROP.*",
-            ".*ALTER.*",
-            ".*TRUNCATE.*"
-    )
-    val pattern = patterns.find { Regex(it, RegexOption.IGNORE_CASE).containsMatchIn(sql) }
-    return if (pattern.isNullOrEmpty()) {
-        true
-    } else {
-        logger.error { "Contain one of sql injection pattern" }
-        false
-    }
-}
-
-private fun containsStackedStatements(sql: String): Boolean {
-    return try {
-        CCJSqlParserUtil.parseStatements(sql).size > 1
-    } catch (e: JSQLParserException) {
-        logger.error(e) { "Fetched exception: $e" }
-        true
     }
 }

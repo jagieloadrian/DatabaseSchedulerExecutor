@@ -109,11 +109,18 @@ class ValidatorKtTest {
                     Arguments.of("SELECT 1; DELETE FROM users", false),
                     Arguments.of("SELECT * FROM people; DROP TABLE people;", false),
 
-                    Arguments.of("SELECT * FROM people WHERE name = 'x' OR 1=1--", false),
-                    Arguments.of("SELECT * FROM people WHERE name = 'x' OR '1'='1'", false),
+                    Arguments.of("DROP TABLE people", false),
+                    Arguments.of("TRUNCATE TABLE people", false),
+                    Arguments.of("ALTER TABLE people ADD age INT", false),
+                    Arguments.of("CREATE TABLE t(id INT)", false),
 
-                    Arguments.of("SELECT * FROM people WHERE id = 1 # comment", false),
-                    Arguments.of("SELECT * FROM people /* comment */ WHERE id = 1", false),
+                    Arguments.of("INSERT INTO people VALUES (2, 'Bob')", true),
+                    Arguments.of("DELETE FROM people WHERE id = 2", true),
+                    // regex blacklist used to reject these valid statements
+                    Arguments.of("UPDATE people SET dropped_at = NULL WHERE id = 1", true),
+                    Arguments.of("SELECT * FROM people WHERE name = '#1'", true),
+                    Arguments.of("SELECT * FROM people /* comment */ WHERE id = 1", true),
+                    Arguments.of("SELECT * FROM people WHERE id = 1 -- comment", true),
 
                     Arguments.of("SELECT * FROM people WHERE status = 'A' OR status = 'B'", true)
             )
