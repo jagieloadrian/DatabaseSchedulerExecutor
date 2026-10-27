@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.0.21"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = project.property("group") as String
@@ -31,7 +32,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
     testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
 
     //testcontainers (E2E against real Postgres/MySQL/MariaDB/MSSQL/Oracle)
     testImplementation("org.testcontainers:junit-jupiter:1.21.4")
@@ -49,14 +50,19 @@ kotlin {
     jvmToolchain(17)
 }
 
-tasks.withType<Jar> {
+// Fat jar: merges META-INF/services (one java.sql.Driver entry per JDBC driver)
+// and drops dependency signatures (mssql-jdbc's MSFTSIG.SF broke class loading).
+tasks.shadowJar {
+    archiveClassifier.set("")
     manifest {
         attributes["Main-Class"] = "com.anjo.MainKt"
     }
-    configurations["compileClasspath"].forEach { file: File ->
-        from(zipTree(file.absoluteFile))
-    }
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    mergeServiceFiles()
+}
+
+// shadowJar writes the same file name, the thin jar would clash with it
+tasks.jar {
+    enabled = false
 }
 
 // Release bundle matching the documented Usage flow exactly: fat jar +
@@ -66,7 +72,7 @@ val releaseZip by tasks.registering(Zip::class) {
     archiveVersion.set(version.toString())
     destinationDirectory.set(layout.buildDirectory.dir("distributions"))
 
-    from(tasks.jar)
+    from(tasks.shadowJar)
     from("src/main/resources/app.properties")
     from("scripts") {
         exclude("test/**")
