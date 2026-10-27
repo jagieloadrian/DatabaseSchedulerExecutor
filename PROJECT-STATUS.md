@@ -14,11 +14,16 @@
 - Logs have timestamps (`simplelogger.properties`); scripts quoted, systemd waits for
   `network-online.target`; dependabot weekly + grouped.
 - Version 1.1.0.
+- All dependencies updated (2026-10-27): Gradle 9.8.2, Kotlin 2.4.21, Shadow 9.6.1, JUnit 6.1.3,
+  Testcontainers 2.0.5 (new module artifacts/packages), kotest 6, all JDBC drivers, coroutines 1.11,
+  kotlin-logging 8, checkout v7 / setup-java v6.
 
 ## Decisions
 - Config file is trusted input: statement check is a scope guard, not injection filtering.
 - Shadow plugin kept over `application` + `distZip` to preserve the single-jar install flow.
 - Coroutines/Flow loop kept (virtual-time test in `SchedulerFlowServiceKtTest`).
+- Shadow 9 needs `DuplicatesStrategy.INCLUDE` for `META-INF/services/**` (default EXCLUDE drops
+  JDBC driver entries before merging); the CI smoke test guards it.
 
 ## Next steps
 - Merge to main to publish v1.1.0 (old v1.0.1 release jar is broken).
