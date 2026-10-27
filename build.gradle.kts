@@ -11,21 +11,21 @@ repositories {
 }
 
 dependencies {
-    implementation("org.xerial:sqlite-jdbc:3.47.2.0")
+    implementation("org.xerial:sqlite-jdbc:3.53.4.0")
     implementation("com.cronutils:cron-utils:9.2.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
-    implementation("com.github.jsqlparser:jsqlparser:5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    implementation("com.github.jsqlparser:jsqlparser:5.4")
 
     //jdbc drivers
-    implementation("org.postgresql:postgresql:42.7.7")
-    implementation("com.mysql:mysql-connector-j:9.3.0")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.10")
-    implementation("com.microsoft.sqlserver:mssql-jdbc:13.6.0.jre11")
-    implementation("com.oracle.database.jdbc:ojdbc11:23.8.0.25.04")
+    implementation("org.postgresql:postgresql:42.7.14")
+    implementation("com.mysql:mysql-connector-j:26.10.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:4.0.0")
+    implementation("com.microsoft.sqlserver:mssql-jdbc:13.6.1.jre11")
+    implementation("com.oracle.database.jdbc:ojdbc11:23.26.3.0.0")
 
     //logging
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
-    implementation("org.slf4j:slf4j-simple:2.0.16")
+    implementation("io.github.oshai:kotlin-logging-jvm:8.0.4")
+    implementation("org.slf4j:slf4j-simple:2.0.20")
 
     testImplementation(kotlin("test"))
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
@@ -33,7 +33,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher") // Gradle 9 no longer provides it
     testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 
     //testcontainers (E2E against real Postgres/MySQL/MariaDB/MSSQL/Oracle)
     testImplementation("org.testcontainers:junit-jupiter:1.21.4")
